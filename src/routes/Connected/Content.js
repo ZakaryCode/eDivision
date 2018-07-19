@@ -210,7 +210,7 @@ class Content extends Component {
             width: '80%'
           }}/>
           <Button color="primary" onClick={this.handleClickDirectory}>
-            分割文件
+            合并文件
           </Button>
           <InputInfo
             type='input'

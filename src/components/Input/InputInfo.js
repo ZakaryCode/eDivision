@@ -52,7 +52,7 @@ class InfoInput extends Component {
       <InputAdornment position={p} className={c}>{d}</InputAdornment>
     );
 
-    console.log(_else_);
+    // console.log(_else_);
 
     const models = (type, index) => {
       switch (type) {

@@ -2,7 +2,6 @@ import React, {Component} from 'react';
 import {HashRouter as Router, Route} from 'react-router-dom';
 import DevTools from 'mobx-react-devtools'; // 测试使用的mobx管理工具
 import {Button, withStyles} from 'material-ui';
-import classNames from 'classnames';
 import logo from './logo.svg';
 import './styles/App.css';
 
@@ -11,9 +10,15 @@ import DialogAlert from './components/Dialog';
 import LinearProgress from './components/LinearProgress';
 
 import Home from './routes/Home';
+import Division from './routes/Division';
+import Connected from './routes/Connected';
+const __package = require("../package.json");
 
 const electron = window.require('electron');
+const _path_ = window.require('path');
+const _url_ = window.require('url');
 const {remote} = electron;
+const ipc = electron.ipcRenderer;
 
 class App extends Component {
   constructor(props) {
@@ -21,32 +26,33 @@ class App extends Component {
     this.state = {
       devtools: false
     };
-  }
-  UNSAFE_componentWillMount() {
-    console.log(window, electron.remote.getCurrentWebContents());
-    console.log(remote.getCurrentWebContents().isDevToolsOpened());
-    this.setState({
-      devtools: remote
-        .getCurrentWebContents()
-        .isDevToolsOpened()
+    const setState = (name, data) => {
+      this.setState({[name]: data});
+    };
+
+    remote
+      .getCurrentWindow()
+      .on('did-navigate-in-page', (event, url, isMainFrame) => {
+        // 页面内导航监听.
+        console.log('did-navigate-in-page', event, url, isMainFrame);
+      });
+
+    console.log(window.location.hash, electron, remote.getCurrentWebContents());
+    setState("devtools", remote.getCurrentWebContents().isDevToolsOpened());
+    ipc.on('toggle-dev-tools', (event, data) => {
+      // 打开调试工具DevTools.
+      setTimeout(() => {
+        // console.log(event, remote.getCurrentWebContents().isDevToolsOpened());
+        setState("devtools", remote.getCurrentWebContents().isDevToolsOpened());
+      }, 500);
     });
   }
 
-  openDevToolsHandle = (event) => {
-    // 打开调试工具DevTools.
-    console.log(event.target);
-    if (remote.getCurrentWebContents().isDevToolsOpened()) {
-      remote
-        .getCurrentWebContents()
-        .closeDevTools();
-      this.setState({devtools: false});
-    } else {
-      remote
-        .getCurrentWebContents()
-        .openDevTools();
-      this.setState({devtools: true});
-    }
-  };
+  handleLoadURL = (name) => () => {
+    let hash = "/" + name;
+    window.location.hash = hash;
+    console.log(window.location, window.location.hash);
+  }
 
   render() {
     return (
@@ -55,16 +61,6 @@ class App extends Component {
           <header className="App-header">
             <img src={logo} className="App-logo" alt="logo"/>
             <h1 className="App-title">欢迎使用文件分割</h1>
-            <Button
-              color="primary"
-              style={{
-              position: 'absolute',
-              right: 16,
-              bottom: '2em'
-            }}
-              onClick={this.openDevToolsHandle}>
-              DevTools
-            </Button>
             <div
               style={{
               display: this.state.devtools
@@ -74,10 +70,32 @@ class App extends Component {
               <DevTools/>
             </div>
           </header>
+          <div className="App-menu">
+            <Button
+              className="App-menu-button"
+              color="primary"
+              onClick={this.handleLoadURL("Home")}>
+              读取文件
+            </Button>
+            <Button
+              className="App-menu-button"
+              color="primary"
+              onClick={this.handleLoadURL("Division")}>
+              分割文件
+            </Button>
+            <Button
+              className="App-menu-button"
+              color="primary"
+              onClick={this.handleLoadURL("Connected")}>
+              合并文件
+            </Button>
+          </div>
           <div>
             <LinearProgress/>
             <Route exact path="/" component={Home}/>
-            <Route exact path="/Home" component={Home}/></div>
+            <Route exact path="/Home" component={Home}/>
+            <Route exact path="/Division" component={Division}/>
+            <Route exact path="/Connected" component={Connected}/></div>
           <Snackbar/>
           <DialogAlert/>
         </div>

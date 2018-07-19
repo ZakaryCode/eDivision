@@ -20,11 +20,25 @@
   font-size: 1.5em;
 }
 
+.App-menu {
+  margin: 4px 0;
+  width: 100%;
+  display: inline-flex;
+}
+
+.App-menu-button {
+  flex: 1;
+}
+
 .App-intro {
   font-size: large;
 }
 
 @keyframes App-logo-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
