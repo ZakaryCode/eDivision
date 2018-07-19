@@ -59,7 +59,9 @@ class Content extends Component {
         __name = _path_.basename(path[0]);
       console.log(__path, __name);
       setState("file", __path);
-      __name = __name.split(".")[0];
+      __name = __name.split(".");
+      __name.pop();
+      __name = __name.join(".");
       setState("book", __name);
     });
   }
@@ -173,7 +175,7 @@ class Content extends Component {
             type='input'
             label='文件'
             helperText="请选择文件"
-            inputName='division'
+            inputName='file'
             inputType='text'
             onClick={this.handleSelectFile}
             value={this.state.file}
@@ -189,7 +191,7 @@ class Content extends Component {
             type='input'
             label='输出'
             helperText="请选择文件输出路径"
-            inputName='division'
+            inputName='directory'
             inputType='text'
             onClick={this.handleSelectDirectory}
             value={this.state.directory}
@@ -217,7 +219,7 @@ class Content extends Component {
             label='书名'
             onChange={this.handleChange('book')}
             inputRef={this.handleInputRef("bookInput")}
-            value={this.state.book}
+            value={(this.state.book || this.state.bookD) + ".txt"}
             inputName='book'
             inputType='text'
             style={{

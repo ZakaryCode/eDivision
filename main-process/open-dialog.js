@@ -18,6 +18,25 @@ ipc.on('open-file-dialog', function (event) {
     );
 });
 
+ipc.on('open-file-multiSelections-dialog', function (event) {
+  dialog
+    .showOpenDialog({
+      properties: [
+        'openFile', 'multiSelections'
+      ],
+      filters: [
+        {
+          name: 'TXT文件',
+          extensions: ['txt']
+        }
+      ]
+    }, function (files) {
+      if (files) 
+        event.sender.send('selected-file', files);
+      }
+    );
+});
+
 ipc.on('open-directory-dialog', function (event) {
   dialog
     .showOpenDialog({

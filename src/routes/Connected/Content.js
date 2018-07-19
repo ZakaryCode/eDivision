@@ -49,19 +49,54 @@ class Content extends Component {
 
   handleSelectFile = () => {
     console.log(ipc);
-    ipc.send('open-file-dialog');
+    ipc.send('open-file-multiSelections-dialog');
     const setState = (name, data) => {
       this.handleChange(name)(data);
     };
     ipc.on('selected-file', function (event, path) {
       console.log(event, path);
-      let __path = path[0],
-        __name = _path_.basename(path[0]);
-      console.log(__path, __name);
-      setState("file", __path);
-      __name = __name.split(".")[0];
-      setState("book", __name);
+      let files = [],
+        books = [];
+      for (let index = 0; index < path.length; index++) {
+        ((index) => {
+          let element = path[index],
+            name = _path_.basename(element);
+          console.log(element, name);
+          files.push(element);
+          name = name.split(".");
+          name.pop();
+          name = name.join(".");
+          books.push(name);
+        })(index);
+      }
+      setState("files", files);
+      let bookF = books[0],
+        bookL = books[books.length - 1],
+        bookName = getMaxStr(bookF, bookL),
+        book = bookName + bookF.replace(bookName, "") + "-" + bookL.replace(bookName, "");
+      // console.log(bookName); console.log(bookF, bookL);
+      setState("book", book);
     });
+
+    let getMaxStr = (str1, str2) => {
+      var max = str1.length > str2.length
+        ? str1
+        : str2;
+      var min = (max == str1
+        ? str2
+        : str1);
+      for (var i = 0; i < min.length; i++) {
+        for (var x = 0, y = min.length - i; y != min.length + 1; x++, y++) {
+          //y表示所取字符串的长度
+          var newStr = min.substring(x, y);
+          //判断max中是否包含newStr
+          if (max.indexOf(newStr) != -1) {
+            return newStr;
+          }
+        }
+      }
+      return -1;
+    }
   }
 
   handleSelectDirectory = () => {
@@ -76,42 +111,6 @@ class Content extends Component {
     });
   }
 
-  handleClickFile = () => {
-    if (!this.state.file) {
-      snack.setMessage("请先选择文件!");
-      this
-        .state
-        .fileInput
-        .focus();
-      return;
-    } else {
-      const {
-        file,
-        book,
-        bookD,
-        division,
-        divisionD,
-        connect,
-        connectD
-      } = this.state;
-      console.log(file);
-      fs.readFile(file, 'utf8', function (err, data) {
-        if (err) {
-          ipc.send('open-error-get-file-dialog');
-        } else {
-          // console.log(book, division, connect, data);
-          data = data.split((division || divisionD));
-          for (let index = 0; index < data.length; index++) {
-            const element = data[index];
-            let bookName = (book || bookD) + (connect || connectD) + index;
-            console.log("bookName", bookName);
-            console.log("bookData", element);
-          }
-        }
-      });
-    }
-  }
-
   handleClickDirectory = () => {
     if (!this.state.directory) {
       snack.setMessage("请先选择输出路径!");
@@ -122,7 +121,7 @@ class Content extends Component {
       return;
     } else {
       const {
-        file,
+        files,
         book,
         bookD,
         division,
@@ -131,32 +130,31 @@ class Content extends Component {
         connectD,
         directory
       } = this.state;
-      console.log(file, directory);
-      fs.readFile(file, 'utf8', function (err, data) {
+      console.log(files, directory);
+
+      let fileData = "",
+        readFilesOrder = (data, arr, index) => {
+          try {
+            data += "\r\n" + fs.readFileSync(arr[index]) + "\r\n\r\n\r\n\r\n" + (division || divisionD);
+          } catch (error) {
+            ipc.send('open-error-get-file-dialog');
+          }
+          index++;
+          if (Number(index) === arr.length) {
+            data += "   本卷完";
+            return data;
+          } else {
+            return readFilesOrder(data, arr, index);
+          }
+        };
+      fileData = readFilesOrder(fileData, files, 0);
+      console.log(fileData);
+      let bookName = (book || bookD);
+      fs.writeFile(_path_.resolve(directory, bookName + ".txt"), fileData, function (err) {
         if (err) {
           ipc.send('open-error-get-file-dialog');
         } else {
-          // console.log(book, division, connect, data);
-          data = data.split((division || divisionD));
-          for (let index = 0; index < data.length; index++) {
-            ((index) => {
-              const element = data[index];
-              let bookName = (book || bookD) + (connect || connectD) + index;
-              let e = element.replace(new RegExp("\r|\n|\\s", 'g'), "");
-              console.log("bookName", bookName);
-              console.log("bookData", e, !!e);
-              if (!!e) {
-                fs
-                  .writeFile(_path_.resolve(directory, bookName + ".txt"), element, function (err) {
-                    if (err) {
-                      ipc.send('open-error-get-file-dialog');
-                    } else {
-                      console.log(bookName, "写入成功");
-                    }
-                  });
-              }
-            })(index);
-          }
+          console.log(bookName, "写入成功");
         }
       });
     }
@@ -173,23 +171,20 @@ class Content extends Component {
             type='input'
             label='文件'
             helperText="请选择文件"
-            inputName='division'
+            inputName='files'
             inputType='text'
             onClick={this.handleSelectFile}
-            value={this.state.file}
-            onChange={this.handleChange("file")}
-            inputRef={this.handleInputRef("fileInput")}
+            value={(this.state.files || []).join(",")}
+            onChange={this.handleChange("files")}
+            inputRef={this.handleInputRef("filesInput")}
             style={{
             width: '80%'
           }}/>
-          <Button color="primary" onClick={this.handleClickFile}>
-            读取文件
-          </Button>
           <InputInfo
             type='input'
             label='输出'
             helperText="请选择文件输出路径"
-            inputName='division'
+            inputName='directory'
             inputType='text'
             onClick={this.handleSelectDirectory}
             value={this.state.directory}
@@ -217,7 +212,7 @@ class Content extends Component {
             label='书名'
             onChange={this.handleChange('book')}
             inputRef={this.handleInputRef("bookInput")}
-            value={this.state.book}
+            value={(this.state.book || this.state.bookD) + ".txt"}
             inputName='book'
             inputType='text'
             style={{
