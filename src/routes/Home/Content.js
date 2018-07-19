@@ -5,7 +5,7 @@
 
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {Paper, Button, withStyles} from 'material-ui';
+import {Paper, TextField, Button, withStyles} from 'material-ui';
 
 import snack from '../../store/snack';
 import InputInfo from "../../components/Input/InputInfo";
@@ -23,6 +23,7 @@ class Content extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      fileData: "",
       division: "------------",
       divisionD: "------------",
       connect: ".",
@@ -30,7 +31,9 @@ class Content extends Component {
       bookD: "未命名",
       list: {
         connect: [".", "-", " "]
-      }
+      },
+      search: "",
+      replace: ""
     };
   }
 
@@ -59,6 +62,7 @@ class Content extends Component {
         __name = _path_.basename(path[0]);
       console.log(__path, __name);
       setState("file", __path);
+      setState("directory", _path_.dirname(__path));
       __name = __name.split(".");
       __name.pop();
       __name = __name.join(".");
@@ -97,24 +101,20 @@ class Content extends Component {
         connectD
       } = this.state;
       console.log(file);
+      const setState = (name, data) => {
+        this.handleChange(name)(data);
+      };
       fs.readFile(file, 'utf8', function (err, data) {
         if (err) {
           ipc.send('open-error-get-file-dialog');
         } else {
-          // console.log(book, division, connect, data);
-          data = data.split((division || divisionD));
-          for (let index = 0; index < data.length; index++) {
-            const element = data[index];
-            let bookName = (book || bookD) + (connect || connectD) + index;
-            console.log("bookName", bookName);
-            console.log("bookData", element);
-          }
+          setState("fileData", data);
         }
       });
     }
   }
 
-  handleClickDirectory = () => {
+  handleSaveFile = () => {
     if (!this.state.directory) {
       snack.setMessage("请先选择输出路径!");
       this
@@ -127,40 +127,79 @@ class Content extends Component {
         file,
         book,
         bookD,
-        division,
+        fileData,
         divisionD,
         connect,
         connectD,
         directory
       } = this.state;
       console.log(file, directory);
-      fs.readFile(file, 'utf8', function (err, data) {
+
+      let bookName = (book || bookD);
+      fs.writeFile(_path_.resolve(directory, bookName + ".txt"), fileData, function (err) {
         if (err) {
           ipc.send('open-error-get-file-dialog');
         } else {
-          // console.log(book, division, connect, data);
-          data = data.split((division || divisionD));
-          for (let index = 0; index < data.length; index++) {
-            ((index) => {
-              const element = data[index];
-              let bookName = (book || bookD) + (connect || connectD) + index;
-              let e = element.replace(new RegExp("\r|\n|\\s", 'g'), "");
-              console.log("bookName", bookName);
-              console.log("bookData", e, !!e);
-              if (!!e) {
-                fs
-                  .writeFile(_path_.resolve(directory, bookName + ".txt"), element, function (err) {
-                    if (err) {
-                      ipc.send('open-error-get-file-dialog');
-                    } else {
-                      console.log(bookName, "写入成功");
-                    }
-                  });
-              }
-            })(index);
-          }
+          console.log(bookName, "写入成功");
         }
       });
+    }
+  }
+
+  handleSearch = () => {
+    this.selectText(this.state.search);
+  }
+
+  handleReplace = () => {
+    console.log(this.state.replace);
+    var userSelection;
+    if (window.getSelection) {
+      // 现代浏览器
+      userSelection = window.getSelection();
+    } else if (document.selection) {
+      // IE浏览器
+      userSelection = document
+        .selection
+        .createRange();
+    }
+  }
+
+  selectText = (text, all) => {
+    let input = this.state.fileDataInput,
+      v = input.value,
+      start = v.indexOf(text),
+      end;
+    if (start == -1) 
+      return; // 查询失败
+    end = start + text.length;
+    input.focus();
+    let range;
+    if (document.selection) { // IE typeof input.createTextRange != 'undefined'
+      range = document
+        .body
+        .createTextRange();
+      range.moveToElementText(input); // input.createTextRange();
+      // 先将光标重合
+      range.moveStart('character', 0);
+      range.moveEnd('character', 0);
+      range.collapse(true);
+      range.moveEnd('character', end);
+      range.moveStart('character', start);
+      range.select();
+    } else if (window.getSelection) { // firefox, chrome typeof input.selectionStart != 'undefined'
+      range = document.createRange();
+      range.selectNode(input);
+      range.setStart(input, 0);
+      range.setEnd(input, 1);
+      window
+        .getSelection()
+        .addRange(range);
+      // console.log(input, input.selectionStart, input.selectionEnd, start, end);
+      input.selectionStart = start;
+      input.selectionEnd = end
+      console.log(range, start, end, "innerText-" + document.getElementById("fileData").innerText);
+      input.setSelectionRange(start, end);
+      console.log(window.getSelection());
     }
   }
 
@@ -199,20 +238,9 @@ class Content extends Component {
             inputRef={this.handleInputRef("directoryInput")}
             style={{
             width: '80%'
-          }}/><br/>
-          <InputInfo
-            type='input'
-            label='分隔符'
-            onChange={this.handleChange('division')}
-            inputRef={this.handleInputRef("divisionInput")}
-            value={this.state.division}
-            inputName='division'
-            inputType='text'
-            style={{
-            width: '80%'
           }}/>
-          <Button color="primary" onClick={this.handleClickDirectory}>
-            分割文件
+          <Button color="primary" onClick={this.handleSaveFile}>
+            保存文件
           </Button>
           <InputInfo
             type='input'
@@ -223,29 +251,56 @@ class Content extends Component {
             inputName='book'
             inputType='text'
             style={{
-            width: '40%',
-            marginRight: "1em"
+            width: '80%'
           }}/>
+          <Button color="primary" onClick={this.handleClickDirectory}>
+            删除本地文件
+          </Button>
           <InputInfo
-            type='menu'
-            label='连接符'
-            onChange={this.handleChange('connect')}
-            inputRef={this.handleInputRef("connectInput")}
-            value={this.state.connect}
-            inputName='connect'
+            type='input'
+            label='查询'
+            onChange={this.handleChange('search')}
+            inputRef={this.handleInputRef("searchInput")}
+            value={this.state.search}
+            inputName='search'
             inputType='text'
             style={{
-            textAlign: "-webkit-center",
-            width: "10em"
-          }}
-            list={list
-            .connect
-            .map((e) => {
-              return {
-                label: "\"" + e + "\"",
-                value: e
-              };
-            })}/>
+            width: '60%'
+          }}/>
+          <Button color="primary" onClick={this.handleSearch}>
+            查询
+          </Button>
+          <Button color="primary" onClick={this.handleSearchAll}>
+            查询所有
+          </Button>
+          <InputInfo
+            type='input'
+            label='替换'
+            onChange={this.handleChange('replace')}
+            inputRef={this.handleInputRef("replaceInput")}
+            value={this.state.replace}
+            inputName='replace'
+            inputType='text'
+            style={{
+            width: '60%'
+          }}/>
+          <Button color="primary" onClick={this.handleReplace}>
+            替换
+          </Button>
+          <Button color="primary" onClick={this.handleReplaceAll}>
+            替换所有
+          </Button>
+          <TextField
+            id="fileData"
+            type='text'
+            rows="15"
+            value={this.state.fileData}
+            onChange={this.handleChange('fileData')}
+            inputRef={this.handleInputRef("fileDataInput")}
+            className={classes.textField}
+            margin="normal"
+            multiline
+            fullWidth/>
         </Paper>
       </div>
     );

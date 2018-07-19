@@ -59,6 +59,7 @@ class Content extends Component {
         __name = _path_.basename(path[0]);
       console.log(__path, __name);
       setState("file", __path);
+      setState("directory", _path_.dirname(__path));
       __name = __name.split(".");
       __name.pop();
       __name = __name.join(".");

@@ -70,10 +70,11 @@ class Content extends Component {
         })(index);
       }
       setState("files", files);
+      setState("directory", _path_.dirname(path[0]));
       let bookF = books[0],
         bookL = books[books.length - 1],
         bookName = getMaxStr(bookF, bookL),
-        book = bookName + bookF.replace(bookName, "") + "-" + bookL.replace(bookName, "");
+        book = bookName + "[" + bookF.replace(bookName, "") + "-" + bookL.replace(bookName, "") + "]";
       // console.log(bookName); console.log(bookF, bookL);
       setState("book", book);
     });
@@ -126,8 +127,6 @@ class Content extends Component {
         bookD,
         division,
         divisionD,
-        connect,
-        connectD,
         directory
       } = this.state;
       console.log(files, directory);
