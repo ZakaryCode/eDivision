@@ -3,17 +3,18 @@
  * @description 内容页
  */
 
-import React, {Component} from 'react';
-import PropTypes from 'prop-types';
-import {Paper, TextField, Button, withStyles} from 'material-ui';
+import React, {Component} from "react";
+import PropTypes from "prop-types";
+import {Paper, TextField, Button, withStyles} from "material-ui";
+import ReactQuill, {Quill, Mixin, Toolbar} from "react-quill";
 
-import snack from '../../store/snack';
+import snack from "../../store/snack";
 import InputInfo from "../../components/Input/InputInfo";
 
-const fs = window.require('fs');
-const _path_ = window.require('path');
+const fs = window.require("fs");
+const _path_ = window.require("path");
 const ipc = window
-  .require('electron')
+  .require("electron")
   .ipcRenderer;
 
 class Content extends Component {
@@ -52,11 +53,11 @@ class Content extends Component {
 
   handleSelectFile = () => {
     console.log(ipc);
-    ipc.send('open-file-dialog');
+    ipc.send("open-file-dialog");
     const setState = (name, data) => {
       this.handleChange(name)(data);
     };
-    ipc.on('selected-file', function (event, path) {
+    ipc.on("selected-file", function (event, path) {
       console.log(event, path);
       let __path = path[0],
         __name = _path_.basename(path[0]);
@@ -72,11 +73,11 @@ class Content extends Component {
 
   handleSelectDirectory = () => {
     console.log(ipc);
-    ipc.send('open-directory-dialog');
+    ipc.send("open-directory-dialog");
     const setState = (name, data) => {
       this.handleChange(name)(data);
     };
-    ipc.on('selected-directory', function (event, path) {
+    ipc.on("selected-directory", function (event, path) {
       console.log(event, path);
       setState("directory", path[0]);
     });
@@ -93,11 +94,20 @@ class Content extends Component {
       const setState = (name, data) => {
         this.handleChange(name)(data);
       };
-      fs.readFile(file, 'utf8', function (err, data) {
+      fs.readFile(file, "utf8", function (err, data) {
         if (err) {
-          ipc.send('open-error-get-file-dialog');
+          ipc.send("open-error-get-file-dialog");
         } else {
           setState("fileData", data);
+          data = data.split(new RegExp("\r|\n|\r\n", 'g'));
+          data = data.map((e) => {
+            let oP = document.createElement("p"),
+              oSpan = document.createElement("span");
+            oSpan.innerText = e;
+            oP.appendChild(oSpan);
+            return oP;
+          });
+          console.log(data);
         }
       });
     }
@@ -122,7 +132,7 @@ class Content extends Component {
       let bookName = (book || bookD);
       fs.writeFile(_path_.resolve(directory, bookName + ".txt"), fileData, function (err) {
         if (err) {
-          ipc.send('open-error-get-file-dialog');
+          ipc.send("open-error-get-file-dialog");
         } else {
           console.log(bookName, "写入成功");
           snack.setMessage(bookName, "写入成功");
@@ -175,19 +185,19 @@ class Content extends Component {
     end = start + text.length;
     input.focus();
     let range;
-    if (document.selection) { // IE typeof input.createTextRange != 'undefined'
+    if (document.selection) { // IE typeof input.createTextRange != "undefined"
       range = document
         .body
         .createTextRange();
       range.moveToElementText(input); // input.createTextRange();
       // 先将光标重合
-      range.moveStart('character', 0);
-      range.moveEnd('character', 0);
+      range.moveStart("character", 0);
+      range.moveEnd("character", 0);
       range.collapse(true);
-      range.moveEnd('character', end);
-      range.moveStart('character', start);
+      range.moveEnd("character", end);
+      range.moveStart("character", start);
       range.select();
-    } else if (window.getSelection) { // firefox, chrome typeof input.selectionStart != 'undefined'
+    } else if (window.getSelection) { // firefox, chrome typeof input.selectionStart != "undefined"
       range = document.createRange();
       range.selectNode(input);
       range.setStart(input, 0);
@@ -212,61 +222,61 @@ class Content extends Component {
       <div className="content">
         <Paper className={classes.root} elevation={4}>
           <InputInfo
-            type='input'
-            label='文件'
+            type="input"
+            label="文件"
             helperText="请选择文件"
-            inputName='file'
-            inputType='text'
+            inputName="file"
+            inputType="text"
             onClick={this.handleSelectFile}
             value={this.state.file}
             onChange={this.handleChange("file")}
             inputRef={this.handleInputRef("fileInput")}
             style={{
-            width: '80%'
+            width: "80%"
           }}/>
           <Button color="primary" onClick={this.handleClickFile}>
             读取文件
           </Button>
           <InputInfo
-            type='input'
-            label='输出'
+            type="input"
+            label="输出"
             helperText="请选择文件输出路径"
-            inputName='directory'
-            inputType='text'
+            inputName="directory"
+            inputType="text"
             onClick={this.handleSelectDirectory}
             value={this.state.directory}
             onChange={this.handleChange("directory")}
             inputRef={this.handleInputRef("directoryInput")}
             style={{
-            width: '80%'
+            width: "80%"
           }}/>
           <Button color="primary" onClick={this.handleSaveFile}>
             保存文件
           </Button>
           <InputInfo
-            type='input'
-            label='书名'
-            onChange={this.handleChange('book')}
+            type="input"
+            label="书名"
+            onChange={this.handleChange("book")}
             inputRef={this.handleInputRef("bookInput")}
             value={(this.state.book || this.state.bookD) + ".txt"}
-            inputName='book'
-            inputType='text'
+            inputName="book"
+            inputType="text"
             style={{
-            width: '80%'
+            width: "80%"
           }}/>
           <Button color="primary" onClick={this.handleDeleteFile}>
             删除本地文件
           </Button>
           <InputInfo
-            type='input'
-            label='查询'
-            onChange={this.handleChange('search')}
+            type="input"
+            label="查询"
+            onChange={this.handleChange("search")}
             inputRef={this.handleInputRef("searchInput")}
             value={this.state.search}
-            inputName='search'
-            inputType='text'
+            inputName="search"
+            inputType="text"
             style={{
-            width: '60%'
+            width: "60%"
           }}/>
           <Button color="primary" onClick={this.handleSearch}>
             查询
@@ -275,15 +285,15 @@ class Content extends Component {
             查询所有
           </Button>
           <InputInfo
-            type='input'
-            label='替换'
-            onChange={this.handleChange('replace')}
+            type="input"
+            label="替换"
+            onChange={this.handleChange("replace")}
             inputRef={this.handleInputRef("replaceInput")}
             value={this.state.replace}
-            inputName='replace'
-            inputType='text'
+            inputName="replace"
+            inputType="text"
             style={{
-            width: '60%'
+            width: "60%"
           }}/>
           <Button color="primary" onClick={this.handleReplace}>
             替换
@@ -293,10 +303,12 @@ class Content extends Component {
           </Button>
           <TextField
             id="fileData"
-            type='text'
+            theme="snow"
+            formats={["bold"]}
+            type="text"
             rows="15"
             value={this.state.fileData}
-            onChange={this.handleChange('fileData')}
+            onChange={this.handleChange("fileData")}
             inputRef={this.handleInputRef("fileDataInput")}
             className={classes.textField}
             margin="normal"
@@ -313,11 +325,11 @@ const styles = (theme) => ({
     .mixins
     .gutters({
       paddingTop: theme.spacing.unit * 3,
-      paddingBottom: '1.2em',
-      margin: 'auto',
-      marginBottom: '4%',
-      width: '90%',
-      position: 'relative'
+      paddingBottom: "1.2em",
+      margin: "auto",
+      marginBottom: "4%",
+      width: "90%",
+      position: "relative"
     })
 });
 
