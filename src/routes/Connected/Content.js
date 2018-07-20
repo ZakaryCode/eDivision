@@ -289,7 +289,28 @@ class Content extends Component {
     }
   }
 
-  handleDelete = () => {}
+  handleDelete = () => {
+    const selected = this.state.selected;
+    this.setState({
+      files: this
+        .state
+        .files
+        .filter((e) => {
+          let isExist = false;
+          for (let index = 0; index < selected.length; index++) {
+            const element = selected[index];
+            // console.log(e.num, element, e.num === element);
+            if (e.num === element) {
+              isExist = true;
+            }
+          }
+          if (!isExist) {
+            return e;
+          }
+        }),
+      selected: []
+    })
+  }
 
   isSelected = (id) => this
     .state
