@@ -37,6 +37,16 @@ const columnData = [
     numeric: true,
     disablePadding: false,
     label: '文件名'
+  }, {
+    id: 'mtime',
+    numeric: true,
+    disablePadding: false,
+    label: '修改时间'
+  }, {
+    id: 'size',
+    numeric: true,
+    disablePadding: false,
+    label: '文件大小'
   }
 ];
 
@@ -60,6 +70,7 @@ class Content extends Component {
       order: 'asc',
       orderBy: 'num',
       files: [],
+      books: [],
       selected: [],
       count: 0
     };
@@ -79,57 +90,8 @@ class Content extends Component {
   }
 
   handleSelectFile = () => {
-    console.log(ipc);
-    ipc.send('open-file-multiSelections-dialog');
-    const setState = (name, data) => {
-      this.handleChange(name)(data);
-    };
-    ipc.on('selected-file', function (event, path) {
-      console.log(event, path);
-      let files = [],
-        books = [];
-      for (let index = 0; index < path.length; index++) {
-        ((index) => {
-          let element = path[index],
-            name = _path_.basename(element),
-            pathD = _path_.dirname(element);
-          console.log(element, pathD, name);
-          files.push({num: index, path: pathD, filename: name});
-          name = name.split(".");
-          name.pop();
-          name = name.join(".");
-          books.push(name);
-        })(index);
-      }
-      setState("files", files);
-      setState("directory", files[0].path);
-      let bookF = books[0],
-        bookL = books[books.length - 1],
-        bookName = getMaxStr(bookF, bookL),
-        book = bookName + "[" + bookF.replace(bookName, "") + "-" + bookL.replace(bookName, "") + "]";
-      // console.log(bookName); console.log(bookF, bookL);
-      setState("book", book);
-    });
-
-    let getMaxStr = (str1, str2) => {
-      var max = str1.length > str2.length
-        ? str1
-        : str2;
-      var min = (max == str1
-        ? str2
-        : str1);
-      for (var i = 0; i < min.length; i++) {
-        for (var x = 0, y = min.length - i; y != min.length + 1; x++, y++) {
-          //y表示所取字符串的长度
-          var newStr = min.substring(x, y);
-          //判断max中是否包含newStr
-          if (max.indexOf(newStr) != -1) {
-            return newStr;
-          }
-        }
-      }
-      return -1;
-    }
+    let isNotAdd = true;
+    this.handleAdd(!isNotAdd)();
   }
 
   handleSelectDirectory = () => {
@@ -253,23 +215,106 @@ class Content extends Component {
     }, this.getList);
   };
 
-  handleCreate = () => {
-    // location.hash = 'Order/Create';
+  handleAdd = (isAdd) => () => {
+    console.log(ipc);
+    ipc.send('open-file-multiSelections-dialog');
+    const setState = (name, data) => {
+      this.handleChange(name)(data);
+    };
+    const {files, books} = this.state;
+    ipc.on('selected-file', function (event, path) {
+      console.log(event, path);
+      let _files = (isAdd
+          ? files
+          : []),
+        _books = (isAdd
+          ? books
+          : []),
+        length = Number(_files.length);
+      for (let index = 0; index < path.length; index++) {
+        ((index) => {
+          let element = path[index],
+            name = _path_.basename(element),
+            pathD = _path_.dirname(element);
+          console.log(element, pathD, name, fs.statSync(element));
+          const state = fs.statSync(element);
+          for (let i = 0; i < _files.length; i++) {
+            const e = _files[i];
+            // console.log(state.ino, e.ino, state.ino === e.ino);
+            if (state.ino === e.ino) {
+              return;
+            }
+          }
+          _files.push({
+            num: index + length,
+            ino: state.ino,
+            path: pathD,
+            filename: name,
+            state: state
+          });
+          name = name.split(".");
+          name.pop();
+          name = name.join(".");
+          _books.push(name);
+        })(index);
+      }
+      setState("files", _files);
+      setState("directory", _files[0].path);
+      let bookF = _books[0],
+        bookL = _books[_books.length - 1],
+        bookName = getMaxStr(bookF, bookL),
+        book = bookName + "[" + bookF.replace(bookName, "") + "-" + bookL.replace(bookName, "") + "]";
+      // console.log(bookName); console.log(bookF, bookL);
+      setState("book", book);
+    });
+
+    let getMaxStr = (str1, str2) => {
+      var max = str1.length > str2.length
+        ? str1
+        : str2;
+      var min = (max == str1
+        ? str2
+        : str1);
+      for (var i = 0; i < min.length; i++) {
+        for (var x = 0, y = min.length - i; y != min.length + 1; x++, y++) {
+          //y表示所取字符串的长度
+          var newStr = min.substring(x, y);
+          //判断max中是否包含newStr
+          if (max.indexOf(newStr) != -1) {
+            return newStr;
+          }
+        }
+      }
+      return -1;
+    }
   }
 
-  handleDelete = () => {
-    // this.deleteOrder(this.state.selected);
-  }
-
-  deleteOrder = (ids) => {
-    // order.delate((res) => {   snack.setMessage("订单已删除！");   console.log(res);
-    // this.getList(); }, {ind_ids: ids});
-  }
+  handleDelete = () => {}
 
   isSelected = (id) => this
     .state
     .selected
     .indexOf(id) !== -1;
+
+  dateFtt = (fmt, date) => {
+    var o = {
+      "M+": date.getMonth() + 1, //月份
+      "d+": date.getDate(), //日
+      "h+": date.getHours(), //小时
+      "m+": date.getMinutes(), //分
+      "s+": date.getSeconds(), //秒
+      "q+": Math.floor((date.getMonth() + 3) / 3), //季度
+      "S": date.getMilliseconds() //毫秒
+    };
+    if (/(y+)/.test(fmt)) 
+      fmt = fmt.replace(RegExp.$1, (date.getFullYear() + "").substr(4 - RegExp.$1.length));
+    for (var k in o) 
+      if (new RegExp("(" + k + ")").test(fmt)) 
+        fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1)
+          ? (o[k])
+          : (("00" + o[k]).substr(("" + o[k]).length)));
+    return fmt;
+  }
 
   render() {
     const {classes} = this.props;
@@ -360,7 +405,7 @@ class Content extends Component {
           <EnhancedTableToolbar
             title={this.state.title}
             numSelected={selected.length}
-            handleCreate={this.handleCreate}
+            handleCreate={this.handleAdd(true)}
             handleDelete={this.handleDelete}/>
           <Table className={classes.table}>
             <EnhancedTableHead
@@ -393,15 +438,15 @@ class Content extends Component {
                       <CustomTableCell padding="none">{n.num}</CustomTableCell>
                       <CustomTableCell numeric>{n.path}</CustomTableCell>
                       <CustomTableCell numeric>{n.filename}</CustomTableCell>
+                      <CustomTableCell numeric>{this.dateFtt("yyyy-MM-dd hh:mm:ss", n.state.mtime)}</CustomTableCell>
+                      <CustomTableCell numeric>{(n.state.size / 1024).toFixed(2)}KB</CustomTableCell>
                     </TableRow>
                   );
                 })}
               {emptyRows > 0 && (
                 <TableRow style={{
                   height: 49 * emptyRows
-                }}>
-                  <CustomTableCell colSpan={6}/>
-                </TableRow>
+                }}></TableRow>
               )}
             </TableBody>
           </Table>

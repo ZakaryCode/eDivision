@@ -83,23 +83,12 @@ class Content extends Component {
   }
 
   handleClickFile = () => {
-    if (!this.state.file) {
+    const {file, fileInput} = this.state;
+    if (!file) {
       snack.setMessage("请先选择文件!");
-      this
-        .state
-        .fileInput
-        .focus();
+      fileInput.focus();
       return;
     } else {
-      const {
-        file,
-        book,
-        bookD,
-        division,
-        divisionD,
-        connect,
-        connectD
-      } = this.state;
       console.log(file);
       const setState = (name, data) => {
         this.handleChange(name)(data);
@@ -115,24 +104,19 @@ class Content extends Component {
   }
 
   handleSaveFile = () => {
-    if (!this.state.directory) {
+    const {
+      file,
+      book,
+      bookD,
+      fileData,
+      directory,
+      directoryInput
+    } = this.state;
+    if (!directory) {
       snack.setMessage("请先选择输出路径!");
-      this
-        .state
-        .directoryInput
-        .focus();
+      directoryInput.focus();
       return;
     } else {
-      const {
-        file,
-        book,
-        bookD,
-        fileData,
-        divisionD,
-        connect,
-        connectD,
-        directory
-      } = this.state;
       console.log(file, directory);
 
       let bookName = (book || bookD);
@@ -142,6 +126,22 @@ class Content extends Component {
         } else {
           console.log(bookName, "写入成功");
         }
+      });
+    }
+  }
+
+  handleDeleteFile = () => {
+    const {file, fileInput} = this.state;
+    if (!file) {
+      snack.setMessage("请先选择文件!");
+      fileInput.focus();
+      return;
+    } else {
+      console.log(file);
+
+      fs.unlink(file, (err) => {
+        console.log(err);
+        snack.setMessage(file + " - 删除成功!");
       });
     }
   }
@@ -253,7 +253,7 @@ class Content extends Component {
             style={{
             width: '80%'
           }}/>
-          <Button color="primary" onClick={this.handleClickDirectory}>
+          <Button color="primary" onClick={this.handleDeleteFile}>
             删除本地文件
           </Button>
           <InputInfo
