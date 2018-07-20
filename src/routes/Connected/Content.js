@@ -304,15 +304,15 @@ class Content extends Component {
     var max = str1.length > str2.length
       ? str1
       : str2;
-    var min = (max == str1
+    var min = (max === str1
       ? str2
       : str1);
     for (var i = 0; i < min.length; i++) {
-      for (var x = 0, y = min.length - i; y != min.length + 1; x++, y++) {
+      for (var x = 0, y = min.length - i; y !== min.length + 1; x++, y++) {
         //y表示所取字符串的长度
         var newStr = min.substring(x, y);
         //判断max中是否包含newStr
-        if (max.indexOf(newStr) != -1) {
+        if (max.indexOf(newStr) !== -1) {
           return newStr;
         }
       }
@@ -333,7 +333,7 @@ class Content extends Component {
       fmt = fmt.replace(RegExp.$1, (date.getFullYear() + "").substr(4 - RegExp.$1.length));
     for (var k in o) 
       if (new RegExp("(" + k + ")").test(fmt)) 
-        fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1)
+        fmt = fmt.replace(RegExp.$1, (RegExp.$1.length === 1)
           ? (o[k])
           : (("00" + o[k]).substr(("" + o[k]).length)));
     return fmt;

@@ -170,7 +170,7 @@ class Content extends Component {
       v = input.value,
       start = v.indexOf(text),
       end;
-    if (start == -1) 
+    if (start === -1) 
       return; // 查询失败
     end = start + text.length;
     input.focus();
@@ -206,7 +206,7 @@ class Content extends Component {
 
   render() {
     const {classes} = this.props;
-    let list = this.state.list;
+    // let list = this.state.list;
 
     return (
       <div className="content">
