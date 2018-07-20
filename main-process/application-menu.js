@@ -122,7 +122,7 @@ let template = [
         click: function () {
           electron
             .shell
-            .openExternal('http://electron.atom.io')
+            .openExternal('https://github.com/ZakaryCode/eDivision')
         }
       }
     ]
