@@ -96,7 +96,7 @@ class Content extends Component {
   }
 
   handleSelectDirectory = () => {
-    console.log(ipc);
+    // console.log(ipc);
     ipc.send("open-directory-dialog");
     const setState = (name, data) => {
       this.handleChange(name)(data);
@@ -175,7 +175,6 @@ class Content extends Component {
 
   handleAdd = (inFiles, inBooks) => () => {
     const getMaxStr = this.getMaxStr;
-    console.log(ipc);
     ipc.send("open-file-multiSelections-dialog");
     const setState = (name, data) => {
       this.handleChange(name)(data);
@@ -191,7 +190,7 @@ class Content extends Component {
           let element = path[index],
             name = _path_.basename(element),
             pathD = _path_.dirname(element);
-          console.log(element, pathD, name, fs.statSync(element));
+          // console.log(element, pathD, name, fs.statSync(element));
           const state = fs.statSync(element);
           for (let i = 0; i < files.length; i++) {
             const e = files[i];
@@ -262,7 +261,7 @@ class Content extends Component {
       count = (num_count || num_countD),
       writeFilesOrder = (data, index) => {
         index = Math.ceil(Number(index));
-        console.log(directory, bookName + "." + index + ".txt");
+        // console.log(directory, bookName + "." + index + ".txt");
         fs.writeFile(_path_.resolve(directory, bookName + "." + index + ".txt"), data, function (err) {
           if (err) {
             ipc.send("open-error-get-file-dialog");
@@ -272,15 +271,15 @@ class Content extends Component {
         });
       },
       readFilesOrder = (data, arr, index) => {
-        console.log(_path_.resolve(arr[index].path, arr[index].filename));
+        // console.log(_path_.resolve(arr[index].path, arr[index].filename));
         try {
           data += "\r\n" + fs.readFileSync(_path_.resolve(arr[index].path, arr[index].filename)) + "\r\n\r\n\r\n\r\n" + (division || divisionD);
         } catch (error) {
-          console.log(error);
+          // console.log(error);
           ipc.send("open-error-get-file-dialog");
         }
         index++;
-        console.log(Number(index) === arr.length || !(Number(index) % count), data);
+        // console.log(Number(index) === arr.length || !(Number(index) % count), data);
         if (Number(index) === arr.length) {
           data += "   本卷完";
           writeFilesOrder(data, Number(index) / count);
