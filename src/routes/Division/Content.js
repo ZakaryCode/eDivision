@@ -79,42 +79,6 @@ class Content extends Component {
     });
   }
 
-  handleClickFile = () => {
-    if (!this.state.file) {
-      snack.setMessage("请先选择文件!");
-      this
-        .state
-        .fileInput
-        .focus();
-      return;
-    } else {
-      const {
-        file,
-        book,
-        bookD,
-        division,
-        divisionD,
-        connect,
-        connectD
-      } = this.state;
-      console.log(file);
-      fs.readFile(file, 'utf8', function (err, data) {
-        if (err) {
-          ipc.send('open-error-get-file-dialog');
-        } else {
-          // console.log(book, division, connect, data);
-          data = data.split((division || divisionD));
-          for (let index = 0; index < data.length; index++) {
-            const element = data[index];
-            let bookName = (book || bookD) + (connect || connectD) + index;
-            console.log("bookName", bookName);
-            console.log("bookData", element);
-          }
-        }
-      });
-    }
-  }
-
   handleClickDirectory = () => {
     if (!this.state.directory) {
       snack.setMessage("请先选择输出路径!");
@@ -155,6 +119,7 @@ class Content extends Component {
                       ipc.send('open-error-get-file-dialog');
                     } else {
                       console.log(bookName, "写入成功");
+                      snack.setMessage(bookName, "写入成功");
                     }
                   });
               }
@@ -185,9 +150,6 @@ class Content extends Component {
             style={{
             width: '80%'
           }}/>
-          <Button color="primary" onClick={this.handleClickFile}>
-            读取文件
-          </Button>
           <InputInfo
             type='input'
             label='输出'

@@ -267,6 +267,7 @@ class Content extends Component {
             ipc.send("open-error-get-file-dialog");
           } else {
             console.log(bookName + "." + index + ".txt", "写入成功");
+            snack.setMessage(bookName + "." + index + ".txt", "写入成功");
           }
         });
       },
