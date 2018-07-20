@@ -9,10 +9,18 @@ import classNames from 'classnames';
 import DeleteIcon from 'material-ui-icons/Delete';
 // import FilterListIcon from 'material-ui-icons/FilterList';
 import AddIcon from 'material-ui-icons/Add';
+import CallMergeIcon from 'material-ui-icons/CallMerge';
 import {lighten} from 'material-ui/styles/colorManipulator';
 
 let EnhancedTableToolbar = (props) => {
-  const {numSelected, title, classes, handleDelete, handleCreate} = props;
+  const {
+    numSelected,
+    title,
+    classes,
+    handleDelete,
+    handleConnect,
+    handleCreate
+  } = props;
 
   return (
     <Toolbar
@@ -33,9 +41,13 @@ let EnhancedTableToolbar = (props) => {
       </div>
       <div className={classes.spacer}/> {numSelected > 0
         ? (typeof handleCreate === 'function'
-          ?
-            <div className={classes.actions}>
-              <Tooltip title="Delete">
+          ? <div className={classes.actions}>
+              <Tooltip title="合并">
+                <IconButton aria-label="connect" onClick={handleConnect}>
+                  <CallMergeIcon/>
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="删除">
                 <IconButton aria-label="Delete" onClick={handleDelete}>
                   <DeleteIcon/>
                 </IconButton>
@@ -43,9 +55,8 @@ let EnhancedTableToolbar = (props) => {
             </div>
           : <div className={classes.actions}/>)
         : (typeof handleCreate === 'function'
-          ?
-            <div className={classes.actions}>
-              <Tooltip title="Add">
+          ? <div className={classes.actions}>
+              <Tooltip title="添加">
                 <IconButton aria-label="Add" onClick={handleCreate}>
                   <AddIcon/>
                 </IconButton>
@@ -80,7 +91,8 @@ const styles = (theme) => ({
   },
   actions: {
     color: theme.palette.text.secondary,
-    display: 'contents'
+    display: 'flex'
+    // display: 'contents'
   },
   title: {
     flex: '0 0 auto'

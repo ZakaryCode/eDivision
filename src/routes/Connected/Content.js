@@ -3,50 +3,50 @@
  * @description 内容页
  */
 
-import React, {Component} from 'react';
-import PropTypes from 'prop-types';
-import {Paper, Button, Checkbox, withStyles} from 'material-ui';
-import Table, {TableBody, TableCell, TableRow} from 'material-ui/Table';
+import React, {Component} from "react";
+import PropTypes from "prop-types";
+import {Paper, Button, Checkbox, withStyles} from "material-ui";
+import Table, {TableBody, TableCell, TableRow} from "material-ui/Table";
 
-import EnhancedTableHead from '../../components/Table/TableHead.jsx';
-import EnhancedTableToolbar from '../../components/Table/TableToolBar.jsx';
-import EnhancedTablePagination from '../../components/Table/TablePagination.jsx';
+import EnhancedTableHead from "../../components/Table/TableHead.jsx";
+import EnhancedTableToolbar from "../../components/Table/TableToolBar.jsx";
+import EnhancedTablePagination from "../../components/Table/TablePagination.jsx";
 
-import snack from '../../store/snack';
+import snack from "../../store/snack";
 import InputInfo from "../../components/Input/InputInfo";
 
-const fs = window.require('fs');
-const _path_ = window.require('path');
+const fs = window.require("fs");
+const _path_ = window.require("path");
 const ipc = window
-  .require('electron')
+  .require("electron")
   .ipcRenderer;
 
 const columnData = [
   {
-    id: 'num',
+    id: "num",
     numeric: false,
     disablePadding: true,
-    label: '订单编号'
+    label: "编号"
   }, {
-    id: 'path',
+    id: "path",
     numeric: true,
     disablePadding: false,
-    label: '路径'
+    label: "路径"
   }, {
-    id: 'filename',
+    id: "filename",
     numeric: true,
     disablePadding: false,
-    label: '文件名'
+    label: "文件名"
   }, {
-    id: 'mtime',
+    id: "mtime",
     numeric: true,
     disablePadding: false,
-    label: '修改时间'
+    label: "修改时间"
   }, {
-    id: 'size',
+    id: "size",
     numeric: true,
     disablePadding: false,
-    label: '文件大小'
+    label: "文件大小"
   }
 ];
 
@@ -59,6 +59,8 @@ class Content extends Component {
     this.state = {
       division: "------------",
       divisionD: "------------",
+      num_count: 20,
+      num_countD: 20,
       connect: ".",
       connectD: ".",
       bookD: "未命名",
@@ -67,8 +69,8 @@ class Content extends Component {
       },
       page: 1,
       rowsPerPage: 20,
-      order: 'asc',
-      orderBy: 'num',
+      order: "asc",
+      orderBy: "num",
       files: [],
       books: [],
       selected: [],
@@ -80,9 +82,9 @@ class Content extends Component {
     // console.log(name, value, value.target.value);
     if (!value.target) {
       this.setState({[name]: value});
-    } else {
-      this.setState({[name]: value.target.value});
+      return;
     }
+    this.setState({[name]: value.target.value});
   }
 
   handleInputRef = name => (Input) => {
@@ -90,78 +92,34 @@ class Content extends Component {
   }
 
   handleSelectFile = () => {
-    let isNotAdd = true;
-    this.handleAdd(!isNotAdd)();
+    this.handleAdd([], [])();
   }
 
   handleSelectDirectory = () => {
     console.log(ipc);
-    ipc.send('open-directory-dialog');
+    ipc.send("open-directory-dialog");
     const setState = (name, data) => {
       this.handleChange(name)(data);
     };
-    ipc.on('selected-directory', function (event, path) {
+    ipc.on("selected-directory", function (event, path) {
       console.log(event, path);
       setState("directory", path[0]);
     });
   }
 
   handleClickDirectory = () => {
-    if (!this.state.directory) {
-      snack.setMessage("请先选择输出路径!");
-      this
-        .state
-        .directoryInput
-        .focus();
-      return;
-    } else {
-      const {
-        files,
-        book,
-        bookD,
-        division,
-        divisionD,
-        directory
-      } = this.state;
-      console.log(files, directory);
-
-      let fileData = "",
-        readFilesOrder = (data, arr, index) => {
-          try {
-            data += "\r\n" + fs.readFileSync(arr[index]) + "\r\n\r\n\r\n\r\n" + (division || divisionD);
-          } catch (error) {
-            ipc.send('open-error-get-file-dialog');
-          }
-          index++;
-          if (Number(index) === arr.length) {
-            data += "   本卷完";
-            return data;
-          } else {
-            return readFilesOrder(data, arr, index);
-          }
-        };
-      fileData = readFilesOrder(fileData, files, 0);
-      console.log(fileData);
-      let bookName = (book || bookD);
-      fs.writeFile(_path_.resolve(directory, bookName + ".txt"), fileData, function (err) {
-        if (err) {
-          ipc.send('open-error-get-file-dialog');
-        } else {
-          console.log(bookName, "写入成功");
-        }
-      });
-    }
+    this.handleConnect(this.state.files)();
   }
 
   handleRequestSort = (event, property) => {
     const orderBy = property;
-    let order = 'desc';
+    let order = "desc";
 
-    if (this.state.orderBy === property && this.state.order === 'desc') {
-      order = 'asc';
+    if (this.state.orderBy === property && this.state.order === "desc") {
+      order = "asc";
     }
 
-    const files = (order === 'desc'
+    const files = (order === "desc"
       ? this.state.files.sort((a, b) => (b[orderBy] < a[orderBy]
         ? -1
         : 1))
@@ -178,20 +136,20 @@ class Content extends Component {
         selected: this
           .state
           .files
-          .map((n) => n.num)
+          .map((n) => n)
       });
       return;
     }
     this.setState({selected: []});
   };
 
-  handleClick = (event, id) => {
+  handleClick = (event, object) => {
     const {selected} = this.state;
-    const selectedIndex = selected.indexOf(id);
+    const selectedIndex = selected.indexOf(object);
     let newSelected = [];
 
     if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, id);
+      newSelected = newSelected.concat(selected, object);
     } else if (selectedIndex === 0) {
       newSelected = newSelected.concat(selected.slice(1));
     } else if (selectedIndex === selected.length - 1) {
@@ -215,22 +173,19 @@ class Content extends Component {
     }, this.getList);
   };
 
-  handleAdd = (isAdd) => () => {
+  handleAdd = (inFiles, inBooks) => () => {
+    const getMaxStr = this.getMaxStr;
     console.log(ipc);
-    ipc.send('open-file-multiSelections-dialog');
+    ipc.send("open-file-multiSelections-dialog");
     const setState = (name, data) => {
       this.handleChange(name)(data);
     };
-    const {files, books} = this.state;
-    ipc.on('selected-file', function (event, path) {
+
+    ipc.on("selected-file", function (event, path) {
       console.log(event, path);
-      let _files = (isAdd
-          ? files
-          : []),
-        _books = (isAdd
-          ? books
-          : []),
-        length = Number(_files.length);
+      let files = inFiles,
+        books = inBooks,
+        length = Number(files.length);
       for (let index = 0; index < path.length; index++) {
         ((index) => {
           let element = path[index],
@@ -238,14 +193,14 @@ class Content extends Component {
             pathD = _path_.dirname(element);
           console.log(element, pathD, name, fs.statSync(element));
           const state = fs.statSync(element);
-          for (let i = 0; i < _files.length; i++) {
-            const e = _files[i];
+          for (let i = 0; i < files.length; i++) {
+            const e = files[i];
             // console.log(state.ino, e.ino, state.ino === e.ino);
             if (state.ino === e.ino) {
               return;
             }
           }
-          _files.push({
+          files.push({
             num: index + length,
             ino: state.ino,
             path: pathD,
@@ -255,38 +210,18 @@ class Content extends Component {
           name = name.split(".");
           name.pop();
           name = name.join(".");
-          _books.push(name);
+          books.push(name);
         })(index);
       }
-      setState("files", _files);
-      setState("directory", _files[0].path);
-      let bookF = _books[0],
-        bookL = _books[_books.length - 1],
+      setState("files", files);
+      setState("directory", files[0].path);
+      let bookF = books[0],
+        bookL = books[books.length - 1],
         bookName = getMaxStr(bookF, bookL),
         book = bookName + "[" + bookF.replace(bookName, "") + "-" + bookL.replace(bookName, "") + "]";
       // console.log(bookName); console.log(bookF, bookL);
       setState("book", book);
     });
-
-    let getMaxStr = (str1, str2) => {
-      var max = str1.length > str2.length
-        ? str1
-        : str2;
-      var min = (max == str1
-        ? str2
-        : str1);
-      for (var i = 0; i < min.length; i++) {
-        for (var x = 0, y = min.length - i; y != min.length + 1; x++, y++) {
-          //y表示所取字符串的长度
-          var newStr = min.substring(x, y);
-          //判断max中是否包含newStr
-          if (max.indexOf(newStr) != -1) {
-            return newStr;
-          }
-        }
-      }
-      return -1;
-    }
   }
 
   handleDelete = () => {
@@ -295,28 +230,95 @@ class Content extends Component {
       files: this
         .state
         .files
-        .filter((e) => {
-          let isExist = false;
-          for (let index = 0; index < selected.length; index++) {
-            const element = selected[index];
-            // console.log(e.num, element, e.num === element);
-            if (e.num === element) {
-              isExist = true;
-            }
-          }
-          if (!isExist) {
-            return e;
+        .filter((object) => {
+          // console.log(object, !(selected.indexOf(object) !== -1));
+          if (!(selected.indexOf(object) !== -1)) {
+            return object;
           }
         }),
       selected: []
     })
   }
 
-  isSelected = (id) => this
+  handleConnect = (inFiles) => () => {
+    const {
+      book,
+      bookD,
+      division,
+      divisionD,
+      num_count,
+      num_countD,
+      directory,
+      directoryInput
+    } = this.state;
+    if (!directory) {
+      snack.setMessage("请先选择输出路径!");
+      directoryInput.focus();
+      return;
+    }
+    console.log(inFiles, directory);
+
+    let bookName = (book || bookD),
+      count = (num_count || num_countD),
+      writeFilesOrder = (data, index) => {
+        index = Math.ceil(Number(index));
+        console.log(directory, bookName + "." + index + ".txt");
+        fs.writeFile(_path_.resolve(directory, bookName + "." + index + ".txt"), data, function (err) {
+          if (err) {
+            ipc.send("open-error-get-file-dialog");
+          } else {
+            console.log(bookName + "." + index + ".txt", "写入成功");
+          }
+        });
+      },
+      readFilesOrder = (data, arr, index) => {
+        console.log(_path_.resolve(arr[index].path, arr[index].filename));
+        try {
+          data += "\r\n" + fs.readFileSync(_path_.resolve(arr[index].path, arr[index].filename)) + "\r\n\r\n\r\n\r\n" + (division || divisionD);
+        } catch (error) {
+          console.log(error);
+          ipc.send("open-error-get-file-dialog");
+        }
+        index++;
+        console.log(Number(index) === arr.length || !(Number(index) % count), data);
+        if (Number(index) === arr.length) {
+          data += "   本卷完";
+          writeFilesOrder(data, Number(index) / count);
+          return data;
+        } else if (!(Number(index) % count)) {
+          data += "   本卷完";
+          writeFilesOrder(data, Number(index) / count);
+          return readFilesOrder("", arr, index);
+        }
+        return readFilesOrder(data, arr, index);
+      };
+    readFilesOrder("", inFiles, 0);
+  }
+
+  isSelected = (e) => this
     .state
     .selected
-    .indexOf(id) !== -1;
+    .indexOf(e) !== -1;
 
+  getMaxStr = (str1, str2) => {
+    var max = str1.length > str2.length
+      ? str1
+      : str2;
+    var min = (max == str1
+      ? str2
+      : str1);
+    for (var i = 0; i < min.length; i++) {
+      for (var x = 0, y = min.length - i; y != min.length + 1; x++, y++) {
+        //y表示所取字符串的长度
+        var newStr = min.substring(x, y);
+        //判断max中是否包含newStr
+        if (max.indexOf(newStr) != -1) {
+          return newStr;
+        }
+      }
+    }
+    return -1;
+  }
   dateFtt = (fmt, date) => {
     var o = {
       "M+": date.getMonth() + 1, //月份
@@ -349,11 +351,11 @@ class Content extends Component {
       <div className="content">
         <Paper className={classes.root} elevation={4}>
           <InputInfo
-            type='input'
-            label='文件'
+            type="input"
+            label="文件"
             helperText="请选择文件"
-            inputName='files'
-            inputType='text'
+            inputName="files"
+            inputType="text"
             onClick={this.handleSelectFile}
             value={(this.state.files || []).map((e) => {
             return e.filename
@@ -361,58 +363,73 @@ class Content extends Component {
             onChange={this.handleChange("files")}
             inputRef={this.handleInputRef("filesInput")}
             style={{
-            width: '80%'
+            width: "80%"
           }}/>
           <InputInfo
-            type='input'
-            label='输出'
+            type="input"
+            label="输出"
             helperText="请选择文件输出路径"
-            inputName='directory'
-            inputType='text'
+            inputName="directory"
+            inputType="text"
             onClick={this.handleSelectDirectory}
             value={this.state.directory}
             onChange={this.handleChange("directory")}
             inputRef={this.handleInputRef("directoryInput")}
             style={{
-            width: '80%'
+            width: "80%"
           }}/><br/>
           <InputInfo
-            type='input'
-            label='分隔符'
-            onChange={this.handleChange('division')}
+            type="input"
+            label="分隔符"
+            onChange={this.handleChange("division")}
             inputRef={this.handleInputRef("divisionInput")}
             value={this.state.division}
-            inputName='division'
-            inputType='text'
+            inputName="division"
+            inputType="text"
             style={{
-            width: '80%'
+            width: "50%",
+            marginRight: "1em"
+          }}/>
+          <InputInfo
+            type="input"
+            label="数量"
+            onChange={this.handleChange("num_count")}
+            inputRef={this.handleInputRef("num_countInput")}
+            value={this.state.num_count}
+            inputName="num_count"
+            inputType="text"
+            style={{
+            textAlign: "-webkit-center",
+            width: "20%",
+            marginRight: "1em"
           }}/>
           <Button color="primary" onClick={this.handleClickDirectory}>
             合并文件
           </Button>
           <InputInfo
-            type='input'
-            label='书名'
-            onChange={this.handleChange('book')}
+            type="input"
+            label="书名"
+            onChange={this.handleChange("book")}
             inputRef={this.handleInputRef("bookInput")}
             value={(this.state.book || this.state.bookD) + ".txt"}
-            inputName='book'
-            inputType='text'
+            inputName="book"
+            inputType="text"
             style={{
-            width: '40%',
+            width: "50%",
             marginRight: "1em"
           }}/>
           <InputInfo
-            type='menu'
-            label='连接符'
-            onChange={this.handleChange('connect')}
+            type="menu"
+            label="连接符"
+            onChange={this.handleChange("connect")}
             inputRef={this.handleInputRef("connectInput")}
             value={this.state.connect}
-            inputName='connect'
-            inputType='text'
+            inputName="connect"
+            inputType="text"
             style={{
             textAlign: "-webkit-center",
-            width: "10em"
+            width: "20%",
+            marginRight: "1em"
           }}
             list={list
             .connect
@@ -426,7 +443,8 @@ class Content extends Component {
           <EnhancedTableToolbar
             title={this.state.title}
             numSelected={selected.length}
-            handleCreate={this.handleAdd(true)}
+            handleCreate={this.handleAdd(this.state.files, this.state.books)}
+            handleConnect={this.handleConnect(this.state.selected)}
             handleDelete={this.handleDelete}/>
           <Table className={classes.table}>
             <EnhancedTableHead
@@ -442,7 +460,7 @@ class Content extends Component {
               {files
                 .slice(0, rowsPerPage - 1)
                 .map((n, i) => {
-                  const isSelected = this.isSelected(n.num);
+                  const isSelected = this.isSelected(n);
                   return (
                     <TableRow
                       hover
@@ -453,7 +471,7 @@ class Content extends Component {
                       selected={isSelected}>
                       <CustomTableCell
                         padding="checkbox"
-                        onClick={(event) => this.handleClick(event, n.num)}>
+                        onClick={(event) => this.handleClick(event, n)}>
                         <Checkbox checked={isSelected}/>
                       </CustomTableCell>
                       <CustomTableCell padding="none">{n.num}</CustomTableCell>
@@ -488,17 +506,18 @@ const styles = (theme) => ({
       .mixins
       .gutters({
         paddingTop: theme.spacing.unit * 3,
-        paddingBottom: '1.2em',
-        margin: 'auto',
-        marginBottom: '4%',
-        width: '90%',
-        position: 'relative'
+        paddingBottom: "1.2em",
+        margin: "auto",
+        marginBottom: "4%",
+        width: "90%",
+        minWidth: 700,
+        position: "relative"
       }),
     table: {
       minWidth: 700
     },
     row: {
-      '&:nth-of-type(odd)': {
+      "&:nth-of-type(odd)": {
         backgroundColor: theme.palette.background.default
       }
     }
