@@ -5,7 +5,12 @@
 
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {Paper, Button, withStyles} from 'material-ui';
+import {Paper, Button, Checkbox, withStyles} from 'material-ui';
+import Table, {TableBody, TableCell, TableRow} from 'material-ui/Table';
+
+import EnhancedTableHead from '../../components/Table/TableHead.jsx';
+import EnhancedTableToolbar from '../../components/Table/TableToolBar.jsx';
+import EnhancedTablePagination from '../../components/Table/TablePagination.jsx';
 
 import snack from '../../store/snack';
 import InputInfo from "../../components/Input/InputInfo";
@@ -15,6 +20,25 @@ const _path_ = window.require('path');
 const ipc = window
   .require('electron')
   .ipcRenderer;
+
+const columnData = [
+  {
+    id: 'num',
+    numeric: false,
+    disablePadding: true,
+    label: '订单编号'
+  }, {
+    id: 'path',
+    numeric: true,
+    disablePadding: false,
+    label: '路径'
+  }, {
+    id: 'filename',
+    numeric: true,
+    disablePadding: false,
+    label: '文件名'
+  }
+];
 
 class Content extends Component {
   static propTypes = {
@@ -30,7 +54,14 @@ class Content extends Component {
       bookD: "未命名",
       list: {
         connect: [".", "-", " "]
-      }
+      },
+      page: 1,
+      rowsPerPage: 20,
+      order: 'asc',
+      orderBy: 'num',
+      files: [],
+      selected: [],
+      count: 0
     };
   }
 
@@ -60,9 +91,10 @@ class Content extends Component {
       for (let index = 0; index < path.length; index++) {
         ((index) => {
           let element = path[index],
-            name = _path_.basename(element);
-          console.log(element, name);
-          files.push(element);
+            name = _path_.basename(element),
+            pathD = _path_.dirname(element);
+          console.log(element, pathD, name);
+          files.push({num: index, path: pathD, filename: name});
           name = name.split(".");
           name.pop();
           name = name.join(".");
@@ -70,7 +102,7 @@ class Content extends Component {
         })(index);
       }
       setState("files", files);
-      setState("directory", _path_.dirname(path[0]));
+      setState("directory", files[0].path);
       let bookF = books[0],
         bookL = books[books.length - 1],
         bookName = getMaxStr(bookF, bookL),
@@ -159,9 +191,93 @@ class Content extends Component {
     }
   }
 
+  handleRequestSort = (event, property) => {
+    const orderBy = property;
+    let order = 'desc';
+
+    if (this.state.orderBy === property && this.state.order === 'desc') {
+      order = 'asc';
+    }
+
+    const files = (order === 'desc'
+      ? this.state.files.sort((a, b) => (b[orderBy] < a[orderBy]
+        ? -1
+        : 1))
+      : this.state.files.sort((a, b) => (a[orderBy] < b[orderBy]
+        ? -1
+        : 1)));
+
+    this.setState({files, order, orderBy});
+  };
+
+  handleSelectAllClick = (event, checked) => {
+    if (checked) {
+      this.setState({
+        selected: this
+          .state
+          .files
+          .map((n) => n.num)
+      });
+      return;
+    }
+    this.setState({selected: []});
+  };
+
+  handleClick = (event, id) => {
+    const {selected} = this.state;
+    const selectedIndex = selected.indexOf(id);
+    let newSelected = [];
+
+    if (selectedIndex === -1) {
+      newSelected = newSelected.concat(selected, id);
+    } else if (selectedIndex === 0) {
+      newSelected = newSelected.concat(selected.slice(1));
+    } else if (selectedIndex === selected.length - 1) {
+      newSelected = newSelected.concat(selected.slice(0, -1));
+    } else if (selectedIndex > 0) {
+      newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1),);
+    }
+
+    this.setState({selected: newSelected});
+  };
+
+  handleChangePage = (event, page) => {
+    this.setState({
+      page
+    }, this.getList);
+  };
+
+  handleChangeRowsPerPage = (event) => {
+    this.setState({
+      rowsPerPage: event.target.value
+    }, this.getList);
+  };
+
+  handleCreate = () => {
+    // location.hash = 'Order/Create';
+  }
+
+  handleDelete = () => {
+    // this.deleteOrder(this.state.selected);
+  }
+
+  deleteOrder = (ids) => {
+    // order.delate((res) => {   snack.setMessage("订单已删除！");   console.log(res);
+    // this.getList(); }, {ind_ids: ids});
+  }
+
+  isSelected = (id) => this
+    .state
+    .selected
+    .indexOf(id) !== -1;
+
   render() {
     const {classes} = this.props;
     let list = this.state.list;
+    const {files, order, orderBy} = this.state;
+    const {selected} = this.state;
+    const {rowsPerPage, page} = this.state;
+    const emptyRows = rowsPerPage - Math.min(rowsPerPage, (files || []).length);
 
     return (
       <div className="content">
@@ -173,7 +289,9 @@ class Content extends Component {
             inputName='files'
             inputType='text'
             onClick={this.handleSelectFile}
-            value={(this.state.files || []).join(",")}
+            value={(this.state.files || []).map((e) => {
+            return e.filename
+          }).join(",")}
             onChange={this.handleChange("files")}
             inputRef={this.handleInputRef("filesInput")}
             style={{
@@ -238,6 +356,61 @@ class Content extends Component {
                 value: e
               };
             })}/>
+
+          <EnhancedTableToolbar
+            title={this.state.title}
+            numSelected={selected.length}
+            handleCreate={this.handleCreate}
+            handleDelete={this.handleDelete}/>
+          <Table className={classes.table}>
+            <EnhancedTableHead
+              numSelected={selected.length}
+              order={order}
+              orderBy={orderBy}
+              onSelectAllClick={this.handleSelectAllClick}
+              onRequestSort={this.handleRequestSort}
+              rowCount={files.length}
+              columnData={columnData}
+              hasCheckBox={!!true}/>
+            <TableBody>
+              {files
+                .slice(0, rowsPerPage - 1)
+                .map((n, i) => {
+                  const isSelected = this.isSelected(n.num);
+                  return (
+                    <TableRow
+                      hover
+                      role="checkbox"
+                      aria-checked={isSelected}
+                      tabIndex={-1}
+                      key={n.num}
+                      selected={isSelected}>
+                      <CustomTableCell
+                        padding="checkbox"
+                        onClick={(event) => this.handleClick(event, n.num)}>
+                        <Checkbox checked={isSelected}/>
+                      </CustomTableCell>
+                      <CustomTableCell padding="none">{n.num}</CustomTableCell>
+                      <CustomTableCell numeric>{n.path}</CustomTableCell>
+                      <CustomTableCell numeric>{n.filename}</CustomTableCell>
+                    </TableRow>
+                  );
+                })}
+              {emptyRows > 0 && (
+                <TableRow style={{
+                  height: 49 * emptyRows
+                }}>
+                  <CustomTableCell colSpan={6}/>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+          <EnhancedTablePagination
+            count={this.state.count}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onChangePage={this.handleChangePage}
+            onChangeRowsPerPage={this.handleChangeRowsPerPage}/>
         </Paper>
       </div>
     );
@@ -245,16 +418,31 @@ class Content extends Component {
 }
 
 const styles = (theme) => ({
-  root: theme
-    .mixins
-    .gutters({
-      paddingTop: theme.spacing.unit * 3,
-      paddingBottom: '1.2em',
-      margin: 'auto',
-      marginBottom: '4%',
-      width: '90%',
-      position: 'relative'
-    })
-});
+    root: theme
+      .mixins
+      .gutters({
+        paddingTop: theme.spacing.unit * 3,
+        paddingBottom: '1.2em',
+        margin: 'auto',
+        marginBottom: '4%',
+        width: '90%',
+        position: 'relative'
+      }),
+    table: {
+      minWidth: 700
+    },
+    row: {
+      '&:nth-of-type(odd)': {
+        backgroundColor: theme.palette.background.default
+      }
+    }
+  }),
+  CustomTableCell = withStyles((theme) => ({
+    body: {
+      backgroundColor: theme.palette.common.white,
+      color: theme.palette.secondary.contrastText,
+      fontSize: 14
+    }
+  }))(TableCell);
 
 export default withStyles(styles)(Content);

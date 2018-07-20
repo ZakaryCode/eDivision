@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {withStyles} from 'material-ui';
+// import {withStyles} from 'material-ui';
 import Typography from 'material-ui/Typography';
 import {MenuItem} from 'material-ui/Menu';
 import ArrowDropDownIcon from 'material-ui-icons/ArrowDropDown';
@@ -49,7 +49,7 @@ export default function SelectWrapped(props) {
   );
 }
 
-class Option extends React.Component {
+class Option extends Component {
   handleClick = (event) => {
     this
       .props
