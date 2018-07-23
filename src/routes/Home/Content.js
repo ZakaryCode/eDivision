@@ -33,6 +33,7 @@ class Content extends Component {
       list: {
         connect: [".", "-", " "]
       },
+      lastEnd: 0,
       search: "",
       replace: ""
     };
@@ -144,8 +145,18 @@ class Content extends Component {
     }
   }
 
-  handleSearch = () => {
-    this.selectText(this.state.search);
+  handleSearch = (lastEnd) => {
+    lastEnd = (typeof lastEnd === "number"
+      ? lastEnd
+      : this.state.lastEnd || 0);
+    console.log("lastEnd", lastEnd);
+    lastEnd = this.selectText(this.state.search, false, lastEnd);
+    this.setState({lastEnd: lastEnd});
+    return lastEnd;
+  }
+
+  handleSearchAll = () => {
+    this.selectText(this.state.search, true);
   }
 
   handleReplace = () => {
@@ -162,14 +173,14 @@ class Content extends Component {
     }
   }
 
-  selectText = (text, all) => {
+  selectText = (text, all, lastEnd) => {
     let input = document.getElementById("fileData"),
       value = input.innerText,
       range,
       selection = window.getSelection();
-    input.focus();
+    selection.removeAllRanges();
     if (window.getSelection) { // firefox, chrome typeof input.selectionStart != "undefined"
-      let start = value.indexOf(text),
+      let start = value.indexOf(text, lastEnd),
         end = start + text.length,
         nStart = value
           .substring(0, start)
@@ -185,19 +196,29 @@ class Content extends Component {
           }),
         oStart = input.querySelector(`p:nth-child(${nStart.length})`),
         oEnd = input.querySelector(`p:nth-child(${nEnd.length})`);
-      console.log(nStart, start, nStart.length - 1, nStart[nStart.length - 1]);
-      console.log(nEnd, end, nEnd.length - 1, nEnd[nEnd.length - 1]);
-      if (start === -1) 
-        return; // 查询失败
+      console.log(nStart, nStart.length, start, nStart[nStart.length - 1]);
+      console.log(nEnd, nEnd.length, end, nEnd[nEnd.length - 1]);
+      if (start === -1) { // if (!all && lastEnd === value.length)
+        if (lastEnd !== 0) {
+          if (!window.confirm("文档已经完成搜索，接下来将从头开始!")) {
+            return 0;
+          }
+          return this.selectText(text, all, 0);
+        } else {
+          alert("没有查询到相关信息!");
+        }
+      }
+      oStart.focus();
       range = this.range()(oStart, nStart[nStart.length - 1], nEnd[nEnd.length - 1], oEnd);
       // range.startOffset=nStart[nStart.length-1];range.endOffset=nEnd[nEnd.length-1]
       console.log(range, oStart, oEnd);
       console.log(range, window.getSelection());
-      selection.removeAllRanges();
       selection.addRange(range);
+      return end;
     } else {
       console.error("平台存在错误,不支持该功能!");
     }
+    return value.length;
   }
 
   handleReplaceRedundantLine = () => {
@@ -294,40 +315,6 @@ class Content extends Component {
           <Button color="primary" onClick={this.handleDeleteFile}>
             删除本地文件
           </Button>
-          <InputInfo
-            type="input"
-            label="查询"
-            onChange={this.handleChange("search")}
-            inputRef={this.handleInputRef("searchInput")}
-            value={this.state.search}
-            inputName="search"
-            inputType="text"
-            style={{
-            width: "60%"
-          }}/>
-          <Button color="primary" onClick={this.handleSearch}>
-            查询
-          </Button>
-          <Button color="primary" onClick={this.handleSearchAll}>
-            查询所有
-          </Button>
-          <InputInfo
-            type="input"
-            label="替换"
-            onChange={this.handleChange("replace")}
-            inputRef={this.handleInputRef("replaceInput")}
-            value={this.state.replace}
-            inputName="replace"
-            inputType="text"
-            style={{
-            width: "60%"
-          }}/>
-          <Button color="primary" onClick={this.handleReplace}>
-            替换
-          </Button>
-          <Button color="primary" onClick={this.handleReplaceAll}>
-            替换所有
-          </Button>
           <Button color="primary" onClick={this.handleReplaceRedundantLine}>
             冗余换行
           </Button>
@@ -358,6 +345,42 @@ class Content extends Component {
               })}
           </div>
         </Paper>
+        <div className={classes.tools}>
+          <InputInfo
+            type="input"
+            label="查询"
+            onChange={this.handleChange("search")}
+            inputRef={this.handleInputRef("searchInput")}
+            value={this.state.search}
+            inputName="search"
+            inputType="text"
+            style={{
+            width: "70%"
+          }}/>
+          <Button color="primary" onClick={this.handleSearch}>
+            查询
+          </Button>
+          <Button color="primary" onClick={this.handleSearchAll}>
+            查询所有
+          </Button>
+          <InputInfo
+            type="input"
+            label="替换"
+            onChange={this.handleChange("replace")}
+            inputRef={this.handleInputRef("replaceInput")}
+            value={this.state.replace}
+            inputName="replace"
+            inputType="text"
+            style={{
+            width: "70%"
+          }}/>
+          <Button color="primary" onClick={this.handleReplace}>
+            替换
+          </Button>
+          <Button color="primary" onClick={this.handleReplaceAll}>
+            替换所有
+          </Button>
+        </div>
       </div>
     );
   }
@@ -370,10 +393,20 @@ const styles = (theme) => ({
       paddingTop: theme.spacing.unit * 3,
       paddingBottom: "1.2em",
       margin: "auto",
-      marginBottom: "4%",
+      marginBottom: "25%",
       width: "90%",
-      position: "relative"
-    })
+      position: "relative",
+      minHeight: "-webkit-fill-available"
+    }),
+  tools: {
+    position: "fixed",
+    backgroundColor: "#FFFFFF",
+    width: "-webkit-fill-available",
+    borderTop: "1px #999999 solid",
+    padding: theme.spacing.unit * 3,
+    bottom: 0,
+    textAlign: "-webkit-center"
+  }
 });
 
 export default withStyles(styles)(Content);
