@@ -172,6 +172,12 @@ class Content extends Component {
         .selection
         .createRange();
     }
+    let range = userSelection.getRangeAt(0),
+      replaceE = document.createElement("span");
+    replaceE.innerHTML = this.state.replace;
+    range.deleteContents();
+    range.insertNode(replaceE);
+    this.handleSearch();
   }
 
   selectText = (text, all, lastEnd) => {
