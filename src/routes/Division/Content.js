@@ -15,6 +15,7 @@ const _path_ = window.require('path');
 const ipc = window
   .require('electron')
   .ipcRenderer;
+const redundancy = new RegExp("\r|\n|\\s", 'g');
 
 class Content extends Component {
   static propTypes = {
@@ -109,7 +110,7 @@ class Content extends Component {
             ((index) => {
               const element = data[index];
               let bookName = (book || bookD) + (connect || connectD) + index;
-              let e = element.replace(new RegExp("\r|\n|\\s", 'g'), "");
+              let e = element.replace(redundancy, "");
               console.log("bookName", bookName);
               console.log("bookData", e, !!e);
               if (!!e) {

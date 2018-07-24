@@ -14,10 +14,6 @@ class Home extends Component {
     classes: PropTypes.object.isRequired
   };
 
-  constructor(props) {
-    super(props);
-  }
-
   render() {
     const {classes} = this.props;
     return (

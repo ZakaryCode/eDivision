@@ -2,8 +2,6 @@
  * @author zakary
  * @description 配置器状态
  */
-"use strict";
-
 import {observable, action} from 'mobx';
 
 class Configurator {

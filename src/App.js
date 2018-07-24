@@ -12,11 +12,8 @@ import LinearProgress from './components/LinearProgress';
 import Home from './routes/Home';
 import Division from './routes/Division';
 import Connected from './routes/Connected';
-const __package = require("../package.json");
 
 const electron = window.require('electron');
-const _path_ = window.require('path');
-const _url_ = window.require('url');
 const {remote} = electron;
 const ipc = electron.ipcRenderer;
 

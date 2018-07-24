@@ -46,3 +46,10 @@ textarea {
   width: inherit;
   overflow: hidden;
 }
+
+a {
+  color: black;
+  background-color: yellow;
+  text-underline-position: auto;
+  text-decoration: wavy;
+}

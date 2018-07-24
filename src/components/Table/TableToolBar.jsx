@@ -2,7 +2,7 @@
  * @author: Zakary.Zhu
  * @description:   表格样式
  */
-import React, {Component} from 'react';
+import React from 'react';
 import {Toolbar, Typography, IconButton, Tooltip, withStyles} from 'material-ui';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';

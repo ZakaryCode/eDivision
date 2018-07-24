@@ -3,9 +3,9 @@
  * @description 内容页
  */
 
-import React, {Component} from "react";
+import React, {Component, createElement} from "react";
 import PropTypes from "prop-types";
-import {Paper, TextField, Button, withStyles} from "material-ui";
+import {Paper, Button, withStyles} from "material-ui";
 
 import snack from "../../store/snack";
 import InputInfo from "../../components/Input/InputInfo";
@@ -15,7 +15,8 @@ const _path_ = window.require("path");
 const ipc = window
   .require("electron")
   .ipcRenderer;
-const multiline = new RegExp("\r|\n|\r\n", 'g');
+const newline = new RegExp("\r|\n|\r\n", 'g');
+const multiline = new RegExp("\r+|\n+|\r\n", 'g');
 
 class Content extends Component {
   static propTypes = {
@@ -40,7 +41,7 @@ class Content extends Component {
   }
 
   handleChange = name => (value) => {
-    // console.log(name, value, value.target.value);
+    console.log(name, value, value.target);
     if (!value.target) {
       this.setState({[name]: value});
     } else {
@@ -180,41 +181,42 @@ class Content extends Component {
       selection = window.getSelection();
     selection.removeAllRanges();
     if (window.getSelection) { // firefox, chrome typeof input.selectionStart != "undefined"
-      let start = value.indexOf(text, lastEnd),
+      /* let start = value.indexOf(text, lastEnd),
         end = start + text.length,
         nStart = value
           .substring(0, start)
-          .split(multiline)
+          .split(newline)
           .map((e) => {
             return e.length
           }),
         nEnd = value
           .substring(0, end)
-          .split(multiline)
+          .split(newline)
           .map((e) => {
             return e.length
           }),
         oStart = input.querySelector(`p:nth-child(${nStart.length})`),
-        oEnd = input.querySelector(`p:nth-child(${nEnd.length})`);
-      console.log(nStart, nStart.length, start, nStart[nStart.length - 1]);
-      console.log(nEnd, nEnd.length, end, nEnd[nEnd.length - 1]);
-      if (start === -1) { // if (!all && lastEnd === value.length)
-        if (lastEnd !== 0) {
-          if (!window.confirm("文档已经完成搜索，接下来将从头开始!")) {
-            return 0;
-          }
-          return this.selectText(text, all, 0);
-        } else {
-          alert("没有查询到相关信息!");
+        oEnd = input.querySelector(`p:nth-child(${nEnd.length})`); */
+      let seachDocs = input.querySelectorAll("a"),
+        seachDoc = seachDocs[lastEnd];
+      if (seachDocs.length === lastEnd) {
+        if (!window.confirm("文档已经完成搜索，接下来将从头开始!")) {
+          return 0;
         }
+        return this.selectText(text, all, 0);
       }
-      oStart.focus();
-      range = this.range()(oStart, nStart[nStart.length - 1], nEnd[nEnd.length - 1], oEnd);
-      // range.startOffset=nStart[nStart.length-1];range.endOffset=nEnd[nEnd.length-1]
-      console.log(range, oStart, oEnd);
-      console.log(range, window.getSelection());
+      console.log(seachDocs, seachDoc, lastEnd);
+      console.log(seachDoc.getAttribute("href"));
+      window.location.hash = seachDoc.getAttribute("href");
+      range = this.range()(seachDoc);
       selection.addRange(range);
-      return end;
+      if (seachDocs.length === 0) {
+        alert("没有查询到相关信息!");
+        return 0;
+      } else {
+        lastEnd++;
+        return lastEnd;
+      }
     } else {
       console.error("平台存在错误,不支持该功能!");
     }
@@ -226,19 +228,43 @@ class Content extends Component {
       fileData: this
         .state
         .fileData
-        .replace(new RegExp("\r+|\n+|\r\n", 'g'), "\n")
+        .replace(multiline, "\n")
     });
+  }
+
+  setSearchLabel = (element, label, index) => {
+    if (label) 
+      element = element.split(label);
+    else 
+      element = [element];
+    let length = element.length,
+      retData = element.map((e, i) => {
+        return <span>{e} {length === i + 1
+            ? null
+            : <a
+              rel="displayYellow"
+              ref={label}
+              href={"#" + label + "-" + index + "-" + i}
+              key={"#" + label + "-" + index + "-" + i}>{label}</a>}
+        </span>;
+      });
+    if (!length) {
+      retData.push(<br/>);
+    }
+    // console.log(retData, index);
+    return retData;
   }
 
   range = () => {
     if (document.createRange) 
-      return (node, start, end, endNode) => {
+      return (node, start = 0, end = 1, endNode) => {
         var r = document.createRange();
         try {
           r.selectNodeContents(document.getElementById("fileData"));
-          // r.setEnd(endNode || node, 1); r.setStart(node, 0);
-          r.setEnd(endNode.firstChild || node.firstChild, end);
-          r.setStart(node.firstChild, start);
+          r.setEnd(endNode || node, end);
+          r.setStart(node, start);
+          // r.setEnd(endNode.firstChild || node.firstChild, end);
+          // r.setStart(node.firstChild, start);
         } catch (error) {
           console.log(error);
         } finally {
@@ -321,27 +347,20 @@ class Content extends Component {
           <div
             id="fileData"
             contenteditable="true"
-            value={this.state.fileData}
-            inputRef={this.handleInputRef("fileDataInput")}
             style={{
             position: "relative"
           }}>
             {this
               .state
               .fileData
-              .split(multiline)
-              .map((e) => {
-                // e = e.replace(/\s/g, "  ");
+              .split(newline)
+              .map((e, i) => {
                 return <p
                   style={{
                   whiteSpace: "pre-wrap",
                   webkitMarginBefore: 0,
                   webkitMarginAfter: 0
-                }}>
-                  {e.toString()
-                    ? e.toString()
-                    : <br/>}
-                </p>
+                }}>{this.setSearchLabel(e.toString(), this.state.search, i).map(e => e)}</p>
               })}
           </div>
         </Paper>
@@ -410,20 +429,3 @@ const styles = (theme) => ({
 });
 
 export default withStyles(styles)(Content);
-
-/*
-<TextField
-theme="snow"
-formats={["bold"]}
-type="text"
-rows="15"
-style={{
-position: "absolute"
-}}
-value={this.state.fileData}
-onChange={this.handleChange("fileData")}
-inputRef={this.handleInputRef("fileDataInput")}
-className={classes.textField}
-margin="normal"
-multiline
-fullWidth/> */

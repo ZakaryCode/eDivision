@@ -51,7 +51,6 @@ class TablePaginationActions extends Component {
       classes,
       count,
       page,
-      realpage,
       rowsPerPage,
       theme
     } = this.props;
@@ -120,7 +119,6 @@ class EnhancedTableHead extends Component {
 
   render() {
     const {
-      classes,
       count,
       rowsPerPage,
       page,

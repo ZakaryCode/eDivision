@@ -229,12 +229,11 @@ class Content extends Component {
       files: this
         .state
         .files
-        .filter((object) => {
-          // console.log(object, !(selected.indexOf(object) !== -1));
-          if (!(selected.indexOf(object) !== -1)) {
+        .filter(object => {
+          if (!(selected.indexOf(object) !== -1)) 
             return object;
           }
-        }),
+        ),
       selected: []
     })
   }

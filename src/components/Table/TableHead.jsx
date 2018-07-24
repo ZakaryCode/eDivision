@@ -4,10 +4,10 @@
  */
 import React, {Component} from 'react';
 import {Checkbox, Tooltip, withStyles} from 'material-ui';
-import Table, {TableCell, TableHead, TableRow, TableSortLabel} from 'material-ui/Table';
+import {TableCell, TableHead, TableRow, TableSortLabel} from 'material-ui/Table';
 import PropTypes from 'prop-types';
 
-class EnhancedTableHead extends React.Component {
+class EnhancedTableHead extends Component {
   static propTypes = {
     // classes: PropTypes.object.isRequired,
     numSelected: PropTypes.number.isRequired,

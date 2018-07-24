@@ -3,11 +3,9 @@ import {Manager, Target, Popper} from 'react-popper';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {Button, Typography, TextField, InputAdornment, withStyles} from 'material-ui';
-import {relative} from 'path';
 import {MenuItem, MenuList} from 'material-ui/Menu';
 
 import ClickAwayListener from 'material-ui/utils/ClickAwayListener';
-import Collapse from 'material-ui/transitions/Collapse';
 import Grow from 'material-ui/transitions/Grow';
 import Paper from 'material-ui/Paper';
 

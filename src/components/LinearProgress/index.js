@@ -8,7 +8,6 @@ import {LinearProgress, withStyles} from 'material-ui';
 import PropTypes from 'prop-types';
 
 import {observer} from 'mobx-react';
-import {observable} from "mobx";
 
 import lineProgress from '../../store/lineProgress';
 import './index.css';

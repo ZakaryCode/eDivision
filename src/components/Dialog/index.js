@@ -9,7 +9,6 @@ import Dialog, {DialogActions, DialogContent, DialogTitle} from 'material-ui/Dia
 import PropTypes from 'prop-types';
 
 import {observer} from 'mobx-react';
-import {observable} from "mobx";
 
 import dialog from '../../store/dialog';
 import './index.css';
@@ -45,7 +44,6 @@ import './index.css';
 
   render() {
     const {classes} = this.props;
-    const {vertical, horizontal} = this.state;
 
     let msg = '';
     try {
