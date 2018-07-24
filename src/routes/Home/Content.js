@@ -15,8 +15,14 @@ const _path_ = window.require("path");
 const ipc = window
   .require("electron")
   .ipcRenderer;
-const newline = new RegExp("\r|\n|\r\n", 'g');
-const multiline = new RegExp("\r+|\n+|\r\n", 'g');
+const newline = /\r|\n|\r\n/g; // 行
+const multiline = /\r+|\n+|\r\n/g; // 多空行
+const emptyEnd = /(^\s+)|(\s+$)/g; // 首尾空格
+const redundancy = /\r|\n|\\s/g; // 空,换行
+const empty = /\r|\n|\\s/g;
+const htmlB = new RegExp("<(\S*?)[^>]*>.*?|<.*? />", "g");
+// const InternetURL = /[a-zA-z]+://([\w-]+\.)+[\w-]+(/[\w-./?%&=]*)?$/; const
+// InternetURL = new RegExp("[a-zA-z]+://([\w-]+\.)+[\w-]+(/[\w-./?%&=]*)?$");
 
 class Content extends Component {
   static propTypes = {
@@ -45,7 +51,10 @@ class Content extends Component {
     if (!value.target) {
       this.setState({[name]: value});
     } else {
-      this.setState({[name]: value.target.value});
+      console.log(value.target.value || value.target.innerText);
+      this.setState({
+        [name]: value.target.value || value.target.innerText
+      });
     }
   }
 
@@ -195,14 +204,14 @@ class Content extends Component {
       range,
       selection = window.getSelection();
     selection.removeAllRanges();
-    /*let start=value.indexOf(text,lastEnd),end=start+text.length,
-        nStart=value.substring(0,start).split(newline).map((e)=>{return e.length}),nEnd=value.substring(0,end).split(newline).map((e)=>{return e.length}),
-        oStart=input.querySelector(`p:nth-child(${nStart.length})`),oEnd=input.querySelector(`p:nth-child(${nEnd.length})`);*/
     if (!window.getSelection) { // firefox, chrome typeof input.selectionStart != "undefined"
       console.error("平台存在错误,不支持该功能!");
+      return 0;
     }
     let seachDocs = input.querySelectorAll("a"),
-      seachDoc = seachDocs[lastEnd];
+      seachDoc = seachDocs[(lastEnd > seachDocs.length
+          ? seachDocs.length
+          : lastEnd)]
     if (!all) {
       if (seachDocs.length === lastEnd) {
         if (!window.confirm("文档已经完成搜索，接下来将从头开始!")) {
@@ -212,11 +221,11 @@ class Content extends Component {
       }
       console.log(seachDocs, seachDoc, lastEnd, seachDoc.getAttribute("href"));
       seachDoc.scrollIntoView({behavior: "smooth", block: "start"});
-      range = this.range()(seachDoc);
+      range = this.range(1)(seachDoc);
       selection.addRange(range);
     } else {
       seachDocs.forEach((e, i) => {
-        range = this.range()(e);
+        range = this.range(1)(e);
         console.log(e, i, range);
         selection.addRange(range);
       });
@@ -230,16 +239,67 @@ class Content extends Component {
     }
   }
 
-  handleReplaceRedundantLine = () => {
-    // this.setState({fileData: this.state.fileData.replace(multiline,"\n")});
+  selectRegExp = (regexp, lastEnd) => {
     let input = document.getElementById("fileData"),
-    seachDocs = input.querySelectorAll("p[name=emptyvalue]");
-    console.log(seachDocs);
-    seachDocs.forEach((e) => {
-      e
-        .parentNode
-        .removeChild(e);
+      value = input.innerText,
+      range,
+      selection = window.getSelection();
+    selection.removeAllRanges();
+    if (!window.getSelection) { // firefox, chrome typeof input.selectionStart != "undefined"
+      console.error("平台存在错误,不支持该功能!");
+      return 0;
+    }
+    let strs = value.match(regexp),
+      str = strs[(lastEnd > strs.length
+          ? strs.length
+          : lastEnd)],
+      start = value.indexOf(str, lastEnd), // 这里还需要调整，目前是第三个匹配到的值，要改为前一个匹配到的字符串位置
+      end = start + str.length, // lastEnd 匹配值计数需要调整
+      nStart = value
+        .substring(0, start)
+        .split(newline)
+        .map((e) => {
+          return e.length
+        }),
+      nEnd = value
+        .substring(0, end)
+        .split(newline)
+        .map((e) => {
+          return e.length
+        }),
+      oStart = input.querySelector(`p:nth-child(${nStart.length}) span`),
+      oEnd = input.querySelector(`p:nth-child(${nEnd.length}) span`);
+    if (start === -1) {
+      if (lastEnd === 0) {
+        alert("没有查询到相关信息!");
+        return 0;
+      } else {
+        if (!window.confirm("文档已经完成搜索，接下来将从头开始!")) {
+          return 0;
+        }
+        return this.selectRegExp(regexp, 0);
+      }
+    }
+    lastEnd++;
+    console.log(start, nStart, oStart.firstChild);
+    console.log(end, nEnd, oEnd.firstChild);
+    // console.log(seachDocs, seachDoc, lastEnd, seachDoc.getAttribute("href"));
+    oStart.scrollIntoView({behavior: "smooth", block: "start"});
+    range = this.range(2)(oStart, nStart[nStart.length - 1], nEnd[nEnd.length - 1], oEnd);
+    selection.addRange(range);
+    return lastEnd;
+  }
+
+  handleReplaceRedundantLine = () => {
+    this.setState({
+      fileData: this
+        .state
+        .fileData
+        .replace(multiline, "\n")
+        .replace(emptyEnd, "")
     });
+    /* let input=document.getElementById("fileData"),seachDocs=input.querySelectorAll("p[name=emptyvalue]");
+    seachDocs.forEach((e)=>{e.parentNode.removeChild(e);}); */
   }
 
   setSearchLabel = (element, label, index) => {
@@ -267,18 +327,34 @@ class Content extends Component {
     return retData;
   }
 
-  range = () => {
+  range = (type) => {
     if (document.createRange) 
       return (node, start = 0, end = 1, endNode) => {
         var r = document.createRange();
         try {
           r.selectNodeContents(document.getElementById("fileData"));
           // r.setEnd(endNode || node, end); r.setStart(node, start);
-          r.selectNode(node);
-          // r.setEnd(endNode.firstChild || node.firstChild, end);
-          // r.setStart(node.firstChild, start);
+          if (type === 1) {
+            r.selectNode(node);
+          } else if (type === 2) {
+            let nEnd = endNode.firstChild || node.firstChild,
+              nStart = node.firstChild;
+            r.setEnd(nEnd, end > nEnd.length
+              ? nEnd.length
+              : end);
+            r.setStart(nStart, start > nStart.length
+              ? nStart.length
+              : start);
+          } else if (type === 3) {
+            let nStart = node.firstChild;
+            r.setStart(nStart, start > nStart.length
+              ? nStart.length
+              : start);
+            r.collapse(true);
+          }
         } catch (error) {
-          console.log(error);
+          r.collapse(true);
+          console.log(endNode.firstChild || node.firstChild, node.firstChild, error);
         } finally {
           return r;
         }
@@ -353,12 +429,10 @@ class Content extends Component {
           <Button color="primary" onClick={this.handleDeleteFile}>
             删除本地文件
           </Button>
-          <Button color="primary" onClick={this.handleReplaceRedundantLine}>
-            冗余换行
-          </Button>
           <div
             id="fileData"
             contenteditable="true"
+            onInput={this.handleChange("fileData")}
             style={{
             position: "relative"
           }}>
@@ -368,7 +442,9 @@ class Content extends Component {
               .split(newline)
               .map((e, i) => {
                 return <p
-                  name={e.toString()
+                  name={e
+                  .toString()
+                  .replace(redundancy, "")
                   ? "value"
                   : "emptyvalue"}
                   style={{
@@ -380,6 +456,45 @@ class Content extends Component {
           </div>
         </Paper>
         <div className={classes.tools}>
+          <Button color="primary" onClick={this.handleReplaceRedundantLine}>
+            冗余换行
+          </Button>
+          <Button
+            color="primary"
+            onClick={(lastEnd) => {
+            lastEnd = (typeof lastEnd === "number"
+              ? lastEnd
+              : this.state.lastEnd || 0);
+            console.log("lastEnd", lastEnd);
+            lastEnd = this.selectRegExp(empty, lastEnd);
+            this.setState({lastEnd: lastEnd});
+          }}>
+            空格匹配
+          </Button>
+          <Button
+            color="primary"
+            onClick={(lastEnd) => {
+            lastEnd = (typeof lastEnd === "number"
+              ? lastEnd
+              : this.state.lastEnd || 0);
+            console.log("lastEnd", lastEnd);
+            lastEnd = this.selectRegExp("InternetURL", lastEnd);
+            this.setState({lastEnd: lastEnd});
+          }}>
+            网页匹配
+          </Button>
+          <Button
+            color="primary"
+            onClick={(lastEnd) => {
+            lastEnd = (typeof lastEnd === "number"
+              ? lastEnd
+              : this.state.lastEnd || 0);
+            console.log("lastEnd", lastEnd);
+            lastEnd = this.selectRegExp(htmlB, lastEnd);
+            this.setState({lastEnd: lastEnd});
+          }}>
+            标签匹配
+          </Button>
           <InputInfo
             type="input"
             label="查询"
@@ -427,7 +542,7 @@ const styles = (theme) => ({
       paddingTop: theme.spacing.unit * 3,
       paddingBottom: "1.2em",
       margin: "auto",
-      marginBottom: "25%",
+      marginBottom: "30%",
       width: "90%",
       position: "relative",
       minHeight: "-webkit-fill-available"
