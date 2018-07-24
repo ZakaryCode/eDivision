@@ -3,7 +3,7 @@
  * @description 内容页
  */
 
-import React, {Component, createElement} from "react";
+import React, {Component} from "react";
 import PropTypes from "prop-types";
 import {Paper, Button, withStyles} from "material-ui";
 
@@ -180,31 +180,30 @@ class Content extends Component {
     this.handleSearch();
   }
 
+  handleReplaceAll = () => {
+    let input = document.getElementById("fileData"),
+      seachDocs = input.querySelectorAll("a");
+    seachDocs.forEach((e) => {
+      e
+        .parentNode
+        .removeChild(e);
+    });
+  }
+
   selectText = (text, all, lastEnd) => {
     let input = document.getElementById("fileData"),
-      value = input.innerText,
       range,
       selection = window.getSelection();
     selection.removeAllRanges();
-    if (window.getSelection) { // firefox, chrome typeof input.selectionStart != "undefined"
-      /* let start = value.indexOf(text, lastEnd),
-        end = start + text.length,
-        nStart = value
-          .substring(0, start)
-          .split(newline)
-          .map((e) => {
-            return e.length
-          }),
-        nEnd = value
-          .substring(0, end)
-          .split(newline)
-          .map((e) => {
-            return e.length
-          }),
-        oStart = input.querySelector(`p:nth-child(${nStart.length})`),
-        oEnd = input.querySelector(`p:nth-child(${nEnd.length})`); */
-      let seachDocs = input.querySelectorAll("a"),
-        seachDoc = seachDocs[lastEnd];
+    /*let start=value.indexOf(text,lastEnd),end=start+text.length,
+        nStart=value.substring(0,start).split(newline).map((e)=>{return e.length}),nEnd=value.substring(0,end).split(newline).map((e)=>{return e.length}),
+        oStart=input.querySelector(`p:nth-child(${nStart.length})`),oEnd=input.querySelector(`p:nth-child(${nEnd.length})`);*/
+    if (!window.getSelection) { // firefox, chrome typeof input.selectionStart != "undefined"
+      console.error("平台存在错误,不支持该功能!");
+    }
+    let seachDocs = input.querySelectorAll("a"),
+      seachDoc = seachDocs[lastEnd];
+    if (!all) {
       if (seachDocs.length === lastEnd) {
         if (!window.confirm("文档已经完成搜索，接下来将从头开始!")) {
           return 0;
@@ -213,28 +212,33 @@ class Content extends Component {
       }
       console.log(seachDocs, seachDoc, lastEnd, seachDoc.getAttribute("href"));
       seachDoc.scrollIntoView({behavior: "smooth", block: "start"});
-      // window.location.hash = seachDoc.getAttribute("href");
       range = this.range()(seachDoc);
       selection.addRange(range);
-      if (seachDocs.length === 0) {
-        alert("没有查询到相关信息!");
-        return 0;
-      } else {
-        lastEnd++;
-        return lastEnd;
-      }
     } else {
-      console.error("平台存在错误,不支持该功能!");
+      seachDocs.forEach((e, i) => {
+        range = this.range()(e);
+        console.log(e, i, range);
+        selection.addRange(range);
+      });
     }
-    return value.length;
+    if (seachDocs.length === 0) {
+      alert("没有查询到相关信息!");
+      return 0;
+    } else {
+      lastEnd++;
+      return lastEnd;
+    }
   }
 
   handleReplaceRedundantLine = () => {
-    this.setState({
-      fileData: this
-        .state
-        .fileData
-        .replace(multiline, "\n")
+    // this.setState({fileData: this.state.fileData.replace(multiline,"\n")});
+    let input = document.getElementById("fileData"),
+    seachDocs = input.querySelectorAll("p[name=emptyvalue]");
+    console.log(seachDocs);
+    seachDocs.forEach((e) => {
+      e
+        .parentNode
+        .removeChild(e);
     });
   }
 
@@ -255,7 +259,9 @@ class Content extends Component {
         </span>;
       });
     if (!length) {
-      retData.push(<br/>);
+      retData.push(
+        <span name="value"><br/></span>
+      );
     }
     // console.log(retData, index);
     return retData;
@@ -267,8 +273,8 @@ class Content extends Component {
         var r = document.createRange();
         try {
           r.selectNodeContents(document.getElementById("fileData"));
-          r.setEnd(endNode || node, end);
-          r.setStart(node, start);
+          // r.setEnd(endNode || node, end); r.setStart(node, start);
+          r.selectNode(node);
           // r.setEnd(endNode.firstChild || node.firstChild, end);
           // r.setStart(node.firstChild, start);
         } catch (error) {
@@ -362,6 +368,9 @@ class Content extends Component {
               .split(newline)
               .map((e, i) => {
                 return <p
+                  name={e.toString()
+                  ? "value"
+                  : "emptyvalue"}
                   style={{
                   whiteSpace: "pre-wrap",
                   webkitMarginBefore: 0,
