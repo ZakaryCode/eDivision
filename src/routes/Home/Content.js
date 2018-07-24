@@ -205,9 +205,9 @@ class Content extends Component {
         }
         return this.selectText(text, all, 0);
       }
-      console.log(seachDocs, seachDoc, lastEnd);
-      console.log(seachDoc.getAttribute("href"));
-      window.location.hash = seachDoc.getAttribute("href");
+      console.log(seachDocs, seachDoc, lastEnd, seachDoc.getAttribute("href"));
+      seachDoc.scrollIntoView({behavior: "smooth", block: "start"});
+      // window.location.hash = seachDoc.getAttribute("href");
       range = this.range()(seachDoc);
       selection.addRange(range);
       if (seachDocs.length === 0) {
