@@ -10,19 +10,24 @@ import {Paper, Button, withStyles} from "material-ui";
 import snack from "../../store/snack";
 import InputInfo from "../../components/Input/InputInfo";
 
+import DialogBoard from "./Dialog";
+
 const fs = window.require("fs");
 const _path_ = window.require("path");
 const ipc = window
   .require("electron")
   .ipcRenderer;
+const s = /\$|\(|\)|\*|\+|\.|\?|\{|\}|\[|\]|\^|\||\\/g;
 const newline = /\r|\n|\r\n/g; // 行
 const multiline = /\r+|\n+|\r\n/g; // 多空行
 const emptyEnd = /(^\s+)|(\s+$)/g; // 首尾空格
 const redundancy = /\r|\n|\\s/g; // 空,换行
+const parentheses = /\([^\)]*\)/g; // 小括号
+const bracket = /\[.*\]/g; // 中括号
+const braces = /\{[^\}]+\}/g; // 大括号
 const empty = /\r|\n|\\s/g;
 const htmlB = new RegExp("<(\S*?)[^>]*>.*?|<.*? />", "g");
-// const InternetURL = /[a-zA-z]+://([\w-]+\.)+[\w-]+(/[\w-./?%&=]*)?$/; const
-// InternetURL = new RegExp("[a-zA-z]+://([\w-]+\.)+[\w-]+(/[\w-./?%&=]*)?$");
+const InternetURL = new RegExp(`^([a-zA-Z]\:|\\\\[^\/\\:*?"<>|]+\\[^\/\\:*?"<>|]+)(\\[^\/\\:*?"<>|]+)+(\.[^\/\\:*?"<>|]+)$`, "g");
 
 class Content extends Component {
   static propTypes = {
@@ -42,8 +47,29 @@ class Content extends Component {
       },
       lastEnd: 0,
       search: "",
-      replace: ""
+      replace: "",
+      open: false,
+      configure: _path_.join(window.__dirname, '../../../CONIF.json'),
+      configureD: _path_.join(window.__dirname, '../../../CONIF.json'),
+      arrayMap: []
     };
+
+    const file = this.state.configure || this.state.configureD;
+    fs.exists(file, (exists) => {
+      console.log(exists)
+      if (!exists) {
+        let arr = this.state.arrayMap;
+        arr = JSON.stringify(arr);
+        fs.writeFile(file, arr, function (err) {
+          if (err) {
+            ipc.send("open-error-get-file-dialog");
+          } else {
+            console.log(file, "写入成功");
+            snack.setMessage(file, "写入成功");
+          }
+        });
+      }
+    });
   }
 
   handleChange = name => (value) => {
@@ -91,6 +117,18 @@ class Content extends Component {
     ipc.on("selected-directory", function (event, path) {
       console.log(event, path);
       setState("directory", path[0]);
+    });
+  }
+
+  handleSelectConfigure = () => {
+    console.log(ipc);
+    ipc.send("open-directory-dialog");
+    const setState = (name, data) => {
+      this.handleChange(name)(data);
+    };
+    ipc.on("selected-directory", function (event, path) {
+      console.log(event, path);
+      setState("configure", path[0]);
     });
   }
 
@@ -160,7 +198,9 @@ class Content extends Component {
       ? lastEnd
       : this.state.lastEnd || 0);
     console.log("lastEnd", lastEnd);
-    lastEnd = this.selectText(this.state.search, false, lastEnd);
+    lastEnd = this.selectText(this.state.search.replace(s, (e) => {
+      return `\\${e}`
+    }), false, lastEnd);
     this.setState({lastEnd: lastEnd});
     return lastEnd;
   }
@@ -239,7 +279,7 @@ class Content extends Component {
     }
   }
 
-  selectRegExp = (regexp, lastEnd) => {
+  selectRegExp = (regexp, lastEnd, lastStr) => {
     let input = document.getElementById("fileData"),
       value = input.innerText,
       range,
@@ -247,14 +287,14 @@ class Content extends Component {
     selection.removeAllRanges();
     if (!window.getSelection) { // firefox, chrome typeof input.selectionStart != "undefined"
       console.error("平台存在错误,不支持该功能!");
-      return 0;
+      return {sLastEnd: 0, sLastStr: 0};
     }
-    let strs = value.match(regexp),
+    let strs = value.match(regexp) || [],
       str = strs[(lastEnd > strs.length
           ? strs.length
-          : lastEnd)],
-      start = value.indexOf(str, lastEnd), // 这里还需要调整，目前是第三个匹配到的值，要改为前一个匹配到的字符串位置
-      end = start + str.length, // lastEnd 匹配值计数需要调整
+          : lastEnd)] || "",
+      start = value.indexOf(str, lastStr),
+      end = start + str.length,
       nStart = value
         .substring(0, start)
         .split(newline)
@@ -269,25 +309,27 @@ class Content extends Component {
         }),
       oStart = input.querySelector(`p:nth-child(${nStart.length}) span`),
       oEnd = input.querySelector(`p:nth-child(${nEnd.length}) span`);
-    if (start === -1) {
+    if (start === -1 || !strs.length || !str.length) {
       if (lastEnd === 0) {
         alert("没有查询到相关信息!");
-        return 0;
+        return {sLastEnd: 0, sLastStr: 0};
       } else {
         if (!window.confirm("文档已经完成搜索，接下来将从头开始!")) {
-          return 0;
+          return {sLastEnd: 0, sLastStr: 0};
         }
-        return this.selectRegExp(regexp, 0);
+        return this.selectRegExp(regexp, 0, 0);
       }
     }
     lastEnd++;
+    lastStr = end;
+    console.log(strs, str, "lastEnd", lastEnd, "lastStr", lastStr);
     console.log(start, nStart, oStart.firstChild);
     console.log(end, nEnd, oEnd.firstChild);
     // console.log(seachDocs, seachDoc, lastEnd, seachDoc.getAttribute("href"));
     oStart.scrollIntoView({behavior: "smooth", block: "start"});
     range = this.range(2)(oStart, nStart[nStart.length - 1], nEnd[nEnd.length - 1], oEnd);
     selection.addRange(range);
-    return lastEnd;
+    return {sLastEnd: lastEnd, sLastStr: lastStr};
   }
 
   handleReplaceRedundantLine = () => {
@@ -302,6 +344,32 @@ class Content extends Component {
     seachDocs.forEach((e)=>{e.parentNode.removeChild(e);}); */
   }
 
+  handleReplaceParentheses = () => {
+    this.setState({
+      fileData: this
+        .state
+        .fileData
+        .replace(parentheses, "")
+    });
+  }
+
+  handleReplaceBracket = () => {
+    this.setState({
+      fileData: this
+        .state
+        .fileData
+        .replace(bracket, "")
+    });
+  }
+
+  handleReplaceBraces = () => {
+    this.setState({
+      fileData: this
+        .state
+        .fileData
+        .replace(braces, "")
+    });
+  }
   setSearchLabel = (element, label, index) => {
     if (label) 
       element = element.split(label);
@@ -376,6 +444,39 @@ class Content extends Component {
       };
   }
 
+  handleConfigure = () => {
+    const setState = (name, data) => {
+        this.handleChange(name)(data);
+      },
+      readF = () => fs.readFile(file, "utf8", function (err, data) {
+        if (err) {
+          ipc.send("open-error-get-file-dialog");
+        } else {
+          console.log(data);
+          setState("arrayMap", JSON.parse(data));
+          setState("open", true);
+        }
+      });
+    const file = this.state.configure || this.state.configureD;
+    fs.exists(file, (exists) => {
+      console.log(exists);
+      if (!exists) {
+        fs
+          .writeFile(file, this.state.arrayMap, function (err) {
+            if (err) {
+              ipc.send("open-error-get-file-dialog");
+            } else {
+              console.log(file, "写入成功");
+              snack.setMessage(file, "写入成功");
+              readF();
+            }
+          });
+      } else {
+        readF();
+      }
+    });
+  }
+
   render() {
     const {classes} = this.props;
     // let list = this.state.list; console.log(this.state.fileData);
@@ -417,6 +518,63 @@ class Content extends Component {
           </Button>
           <InputInfo
             type="input"
+            label="配置"
+            helperText="配置文件路径"
+            inputName="configure"
+            inputType="text"
+            onClick={this.handleSelectConfigure}
+            value={this.state.configure}
+            onChange={this.handleChange("configure")}
+            inputRef={this.handleInputRef("configureInput")}
+            style={{
+            width: "80%"
+          }}/>
+          <DialogBoard
+            open={this.state.open}
+            onAdd={(e, flag) => {
+            let arr = this.state.arrayMap;
+            if (flag && arr.indexOf(e) === -1) 
+              arr.push(e);
+            else if (!flag && arr.indexOf(e) !== -1) 
+              arr.splice(arr.indexOf(e), 1);
+            this.setState({arrayMap: arr})
+          }}
+            onClose={(flag) => {
+            this.setState({open: false});
+            const file = this.state.configure || this.state.configureD;
+            let arr = this.state.arrayMap;
+            arr = JSON.stringify(arr);
+            fs.writeFile(file, arr, function (err) {
+              if (err) {
+                ipc.send("open-error-get-file-dialog");
+              } else {
+                console.log(file, "写入成功");
+                snack.setMessage(file, "写入成功");
+              }
+            });
+            if (flag) {
+              console.log(this.state.arrayMap);
+              let str = this.state.fileData,
+                arrS = this
+                  .state
+                  .arrayMap
+                  .join("|"),
+                __regexp = new RegExp(arrS, "g");
+              str = str.replace(__regexp, "");
+              console.log(arrS, __regexp);
+              this.setState({
+                fileData: str
+              }, () => {
+                console.log(this.state.fileData)
+              });
+            }
+          }}
+            arrayMap={this.state.arrayMap}/>
+          <Button color="primary" onClick={this.handleConfigure}>
+            替换配置
+          </Button>
+          <InputInfo
+            type="input"
             label="书名"
             onChange={this.handleChange("book")}
             inputRef={this.handleInputRef("bookInput")}
@@ -441,6 +599,9 @@ class Content extends Component {
               .fileData
               .split(newline)
               .map((e, i) => {
+                if (i >= 5000) {
+                  return null;
+                }
                 return <p
                   name={e
                   .toString()
@@ -455,43 +616,106 @@ class Content extends Component {
               })}
           </div>
         </Paper>
+        <div style={{
+          height: "15em"
+        }}></div>
         <div className={classes.tools}>
+          <Button color="primary" onClick={this.handleConfigure}>
+            替换配置
+          </Button>
           <Button color="primary" onClick={this.handleReplaceRedundantLine}>
             冗余换行
           </Button>
           <Button
             color="primary"
-            onClick={(lastEnd) => {
+            onClick={(lastEnd, lastStr) => {
             lastEnd = (typeof lastEnd === "number"
               ? lastEnd
               : this.state.lastEnd || 0);
-            console.log("lastEnd", lastEnd);
-            lastEnd = this.selectRegExp(empty, lastEnd);
-            this.setState({lastEnd: lastEnd});
+            lastStr = (typeof lastStr === "number"
+              ? lastStr
+              : this.state.lastStr || 0);
+            let {sLastEnd, sLastStr} = this.selectRegExp(empty, lastEnd, lastStr);
+            this.setState({lastEnd: sLastEnd, lastStr: sLastStr});
           }}>
             空格匹配
           </Button>
           <Button
             color="primary"
-            onClick={(lastEnd) => {
+            onClick={(lastEnd, lastStr) => {
             lastEnd = (typeof lastEnd === "number"
               ? lastEnd
               : this.state.lastEnd || 0);
-            console.log("lastEnd", lastEnd);
-            lastEnd = this.selectRegExp("InternetURL", lastEnd);
-            this.setState({lastEnd: lastEnd});
+            lastStr = (typeof lastStr === "number"
+              ? lastStr
+              : this.state.lastStr || 0);
+            let {sLastEnd, sLastStr} = this.selectRegExp(parentheses, lastEnd, lastStr);
+            this.setState({lastEnd: sLastEnd, lastStr: sLastStr});
+          }}>
+            圆括号匹配
+          </Button>
+          <Button color="primary" onClick={this.handleReplaceParentheses}>
+            圆括号替换
+          </Button>
+          <Button
+            color="primary"
+            onClick={(lastEnd, lastStr) => {
+            lastEnd = (typeof lastEnd === "number"
+              ? lastEnd
+              : this.state.lastEnd || 0);
+            lastStr = (typeof lastStr === "number"
+              ? lastStr
+              : this.state.lastStr || 0);
+            let {sLastEnd, sLastStr} = this.selectRegExp(bracket, lastEnd, lastStr);
+            this.setState({lastEnd: sLastEnd, lastStr: sLastStr});
+          }}>
+            方括号匹配
+          </Button>
+          <Button color="primary" onClick={this.handleReplaceBracket}>
+            方括号替换
+          </Button>
+          <Button
+            color="primary"
+            onClick={(lastEnd, lastStr) => {
+            lastEnd = (typeof lastEnd === "number"
+              ? lastEnd
+              : this.state.lastEnd || 0);
+            lastStr = (typeof lastStr === "number"
+              ? lastStr
+              : this.state.lastStr || 0);
+            let {sLastEnd, sLastStr} = this.selectRegExp(braces, lastEnd, lastStr);
+            this.setState({lastEnd: sLastEnd, lastStr: sLastStr});
+          }}>
+            大括号匹配
+          </Button>
+          <Button color="primary" onClick={this.handleReplaceBraces}>
+            大括号替换
+          </Button>
+          <Button
+            color="primary"
+            onClick={(lastEnd, lastStr) => {
+            lastEnd = (typeof lastEnd === "number"
+              ? lastEnd
+              : this.state.lastEnd || 0);
+            lastStr = (typeof lastStr === "number"
+              ? lastStr
+              : this.state.lastStr || 0);
+            let {sLastEnd, sLastStr} = this.selectRegExp(InternetURL, lastEnd, lastStr);
+            this.setState({lastEnd: sLastEnd, lastStr: sLastStr});
           }}>
             网页匹配
           </Button>
           <Button
             color="primary"
-            onClick={(lastEnd) => {
+            onClick={(lastEnd, lastStr) => {
             lastEnd = (typeof lastEnd === "number"
               ? lastEnd
               : this.state.lastEnd || 0);
-            console.log("lastEnd", lastEnd);
-            lastEnd = this.selectRegExp(htmlB, lastEnd);
-            this.setState({lastEnd: lastEnd});
+            lastStr = (typeof lastStr === "number"
+              ? lastStr
+              : this.state.lastStr || 0);
+            let {sLastEnd, sLastStr} = this.selectRegExp(htmlB, lastEnd, lastStr);
+            this.setState({lastEnd: sLastEnd, lastStr: sLastStr});
           }}>
             标签匹配
           </Button>
@@ -542,7 +766,7 @@ const styles = (theme) => ({
       paddingTop: theme.spacing.unit * 3,
       paddingBottom: "1.2em",
       margin: "auto",
-      marginBottom: "30%",
+      // marginBottom: "30%",
       width: "90%",
       position: "relative",
       minHeight: "-webkit-fill-available"
