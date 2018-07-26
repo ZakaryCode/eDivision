@@ -17,17 +17,19 @@ const _path_ = window.require("path");
 const ipc = window
   .require("electron")
   .ipcRenderer;
-const s = /\$|\(|\)|\*|\+|\.|\?|\{|\}|\[|\]|\^|\||\\/g;
-const newline = /\r|\n|\r\n/g; // 行
-const multiline = /\r+|\n+|\r\n/g; // 多空行
-const emptyEnd = /(^\s+)|(\s+$)/g; // 首尾空格
-const redundancy = /\r|\n|\\s/g; // 空,换行
-const parentheses = /\([^\)]*\)/g; // 小括号
-const bracket = /\[.*\]/g; // 中括号
-const braces = /\{[^\}]+\}/g; // 大括号
-const empty = /\r|\n|\\s/g;
+const s = /\$|\(|\)|\*|\+|\.|\?|\{|\}|\[|\]|\^|\||\\/ig;
+const newline = /\r|\n|\r\n/ig; // 行
+const multiline = /\r+|\n+|\r\n/ig; // 多空行
+const emptyEnd = /(^\s+)|(\s+$)/ig; // 首尾空格
+const redundancy = /\r|\n|\\s/ig; // 空,换行
+const spacing = /\s/ig; // 空
+const parentheses = /\([^\)]*\)/ig; // 小括号
+const bracket = /\[.*\]/ig; // 中括号
+const braces = /\{[^\}]+\}/ig; // 大括号
+const empty = /\r|\n|\\s/ig;
 const htmlB = new RegExp("<(\S*?)[^>]*>.*?|<.*? />", "g");
 const InternetURL = new RegExp(`^([a-zA-Z]\:|\\\\[^\/\\:*?"<>|]+\\[^\/\\:*?"<>|]+)(\\[^\/\\:*?"<>|]+)+(\.[^\/\\:*?"<>|]+)$`, "g");
+const SpecialCharacter1 = /(&#.*?;)|(&.*?;)|(#.*?;)/ig; // 特殊字符1
 
 class Content extends Component {
   static propTypes = {
@@ -160,9 +162,8 @@ class Content extends Component {
       directoryInput.focus();
       return;
     } else {
-      let oFileData = document
-        .getElementById("fileData")
-        .innerText;
+      // let oFileData = document.getElementById("fileData").innerText;
+      let oFileData = this.state.fileData;
       console.log(file, directory, oFileData);
 
       let bookName = (book || bookD);
@@ -193,20 +194,18 @@ class Content extends Component {
     }
   }
 
-  handleSearch = (lastEnd) => {
+  handleSearch = (s, lastEnd) => {
     lastEnd = (typeof lastEnd === "number"
       ? lastEnd
       : this.state.lastEnd || 0);
     console.log("lastEnd", lastEnd);
-    lastEnd = this.selectText(this.state.search.replace(s, (e) => {
-      return `\\${e}`
-    }), false, lastEnd);
+    lastEnd = this.selectText(this.state.search.replace(s, e => `\\${e}`), false, lastEnd, s); // .replace(spacing, /\s/)
     this.setState({lastEnd: lastEnd});
     return lastEnd;
   }
 
   handleSearchAll = () => {
-    this.selectText(this.state.search, true);
+    this.selectText(this.state.search.replace(s, e => `\\${e}`), true); // .replace(spacing, /\s/)
   }
 
   handleReplace = () => {
@@ -221,25 +220,54 @@ class Content extends Component {
         .selection
         .createRange();
     }
-    let range = userSelection.getRangeAt(0),
-      replaceE = document.createElement("span");
-    replaceE.innerHTML = this.state.replace;
-    range.deleteContents();
-    range.insertNode(replaceE);
-    this.handleSearch();
+    try {
+      let search = this
+          .state
+          .search
+          .replace(s, e => `\\${e}`), // .replace(spacing, /\s/)
+        replace = this.state.replace,
+        fileData = this.state.fileData,
+        range = userSelection.getRangeAt(0),
+        key = range
+          .commonAncestorContainer
+          .querySelector("a")
+          .getAttribute("href")
+          .split("-");
+      // console.log(key);
+      this.setState({
+        fileData: fileData
+          .split(newline)
+          .map((e, i) => e.split(search).map((ee, ii, arr) => {
+            if (arr.length === ii + 1) 
+              return ee;
+            return ee + (i === Number(key[1]) && ii === Number(key[2])
+              ? replace
+              : search)
+          }).join(""))
+          .join("\n")
+      });
+    } catch (error) {
+      console.log(error);
+    } finally {
+      this.handleSearch(true);
+    }
+    // replaceE=document.createElement("span");replaceE.innerHTML=
+    // this.state.replace;range.deleteContents();range.insertNode(replaceE);
   }
 
   handleReplaceAll = () => {
-    let input = document.getElementById("fileData"),
-      seachDocs = input.querySelectorAll("a");
-    seachDocs.forEach((e) => {
-      e
-        .parentNode
-        .removeChild(e);
+    // let input=
+    // document.getElementById("fileData"),seachDocs=input.querySelectorAll("a");
+    // seachDocs.forEach((e)=>{e.parentNode.removeChild(e);});
+    this.setState({
+      fileData: this
+        .state
+        .fileData
+        .replace(new RegExp(this.state.replace.replace(s, e => `\\${e}`), "g"), this.state.replace) // .replace(spacing, /\s/)
     });
   }
 
-  selectText = (text, all, lastEnd) => {
+  selectText = (text, all, lastEnd, s) => {
     let input = document.getElementById("fileData"),
       range,
       selection = window.getSelection();
@@ -257,7 +285,7 @@ class Content extends Component {
         if (!window.confirm("文档已经完成搜索，接下来将从头开始!")) {
           return 0;
         }
-        return this.selectText(text, all, 0);
+        return this.selectText(text, all, 0, s);
       }
       console.log(seachDocs, seachDoc, lastEnd, seachDoc.getAttribute("href"));
       seachDoc.scrollIntoView({behavior: "smooth", block: "start"});
@@ -273,10 +301,10 @@ class Content extends Component {
     if (seachDocs.length === 0) {
       alert("没有查询到相关信息!");
       return 0;
-    } else {
-      lastEnd++;
-      return lastEnd;
     }
+    if (!s) 
+      lastEnd++;
+    return lastEnd;
   }
 
   selectRegExp = (regexp, lastEnd, lastStr) => {
@@ -370,29 +398,45 @@ class Content extends Component {
         .replace(braces, "")
     });
   }
+
+  handleReplaceSpecialCharacter1 = () => {
+    this.setState({
+      fileData: this
+        .state
+        .fileData
+        .replace(SpecialCharacter1, "")
+    });
+  }
   setSearchLabel = (element, label, index) => {
-    if (label) 
+    let spanLabel = () => {
       element = element.split(label);
-    else 
-      element = [element];
-    let length = element.length,
-      retData = element.map((e, i) => {
-        return <span>{e} {length === i + 1
-            ? null
-            : <a
-              rel="displayYellow"
-              ref={label}
-              href={"#" + label + "-" + index + "-" + i}
-              key={"#" + label + "-" + index + "-" + i}>{label}</a>}
+      if (!element.length) 
+        return <span name="value"><br/></span>;
+      return element.map((e, i) => {
+        if (element.length === i + 1) 
+          return <span>{e}</span>;
+        return <span>{e}
+          <a
+            rel="displayYellow"
+            ref={label}
+            href={"#" + label + "-" + index + "-" + i}
+            key={"#" + label + "-" + index + "-" + i}>{label}</a>
         </span>;
       });
-    if (!length) {
-      retData.push(
-        <span name="value"><br/></span>
-      );
     }
-    // console.log(retData, index);
-    return retData;
+    if (index < 5000) 
+      return <p
+        name={element.replace(redundancy, "")
+        ? "value"
+        : "emptyvalue"}
+        style={{
+        whiteSpace: "pre-wrap",
+        webkitMarginBefore: 0,
+        webkitMarginAfter: 0
+      }}>{label
+          ? spanLabel(element, label, index)
+          : <span>{element}</span>}</p>;
+    return null;
   }
 
   range = (type) => {
@@ -558,6 +602,7 @@ class Content extends Component {
                 arrS = this
                   .state
                   .arrayMap
+                  .map((e) => e.replace(s, e => `\\${e}`))
                   .join("|"),
                 __regexp = new RegExp(arrS, "g");
               str = str.replace(__regexp, "");
@@ -594,26 +639,7 @@ class Content extends Component {
             style={{
             position: "relative"
           }}>
-            {this
-              .state
-              .fileData
-              .split(newline)
-              .map((e, i) => {
-                if (i >= 5000) {
-                  return null;
-                }
-                return <p
-                  name={e
-                  .toString()
-                  .replace(redundancy, "")
-                  ? "value"
-                  : "emptyvalue"}
-                  style={{
-                  whiteSpace: "pre-wrap",
-                  webkitMarginBefore: 0,
-                  webkitMarginAfter: 0
-                }}>{this.setSearchLabel(e.toString(), this.state.search, i).map(e => e)}</p>
-              })}
+            {(this.state.fileData || "").split(newline).map((e, i) => this.setSearchLabel(e.toString(), this.state.search.replace(s, e => `\\${e}`), i))}
           </div>
         </Paper>
         <div style={{
@@ -690,6 +716,23 @@ class Content extends Component {
           </Button>
           <Button color="primary" onClick={this.handleReplaceBraces}>
             大括号替换
+          </Button>
+          <Button
+            color="primary"
+            onClick={(lastEnd, lastStr) => {
+            lastEnd = (typeof lastEnd === "number"
+              ? lastEnd
+              : this.state.lastEnd || 0);
+            lastStr = (typeof lastStr === "number"
+              ? lastStr
+              : this.state.lastStr || 0);
+            let {sLastEnd, sLastStr} = this.selectRegExp(SpecialCharacter1, lastEnd, lastStr);
+            this.setState({lastEnd: sLastEnd, lastStr: sLastStr});
+          }}>
+            特殊字符1匹配
+          </Button>
+          <Button color="primary" onClick={this.handleReplaceSpecialCharacter1}>
+            特殊字符1替换
           </Button>
           <Button
             color="primary"
