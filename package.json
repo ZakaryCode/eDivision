@@ -4,10 +4,13 @@
   "private": true,
   "main": "main.js",
   "homepage": ".",
-  "DEV": true,
+  "DEV": false,
   "scripts": {
     "electron": "electron .",
-    "electron-win": "electron-packager . division --win --out ./buildElectron --arch=x64 --app-version=0.1.1 --electron-version=2.0.5",
+    "electron-win": "electron-packager . division --win --out ./buildElectron --arch=x64 --asar --app-version=0.1.2 --electron-version=2.0.5",
+    "electron-Win": "electron-packager . 'Hosts' --platform=win32 --out ./buildElectron --arch=x64 --asar --app-version=0.1.2 --electron-version=2.0.5",
+    "electron-linux": "electron-packager . 'Hosts' --platform=linux --out ./buildElectron --arch=x64 --asar --app-version=0.1.2 --electron-version=2.0.5",
+    "electron-darwin": "electron-packager . 'Hosts' --platform=darwin --out ./buildElectron --arch=x64 --asar --app-version=0.1.2 --electron-version=2.0.5",
     "start": "node scripts/start.js",
     "build": "node scripts/build.js",
     "test": "node scripts/test.js --env=jsdom"
