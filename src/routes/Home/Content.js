@@ -27,8 +27,10 @@ const parentheses = /\([^\)]*\)/ig; // 小括号
 const bracket = /\[.*\]/ig; // 中括号
 const braces = /\{[^\}]+\}/ig; // 大括号
 const empty = /\r|\n|\\s/ig;
-const htmlB = new RegExp("<(\S*?)[^>]*>.*?|<.*? />", "g");
+const htmlA = new RegExp("<(\S*?)[^>]*>.*?|<.*? />", "g");
+const htmlB = new RegExp("<(\S*?)[^>]*>.*|<.*? />", "g");
 const InternetURL = new RegExp(`^([a-zA-Z]\:|\\\\[^\/\\:*?"<>|]+\\[^\/\\:*?"<>|]+)(\\[^\/\\:*?"<>|]+)+(\.[^\/\\:*?"<>|]+)$`, "g");
+const InternetURL2 = new RegExp(`[a-zA-z]+://[^\s]*`, "g");
 const SpecialCharacter1 = /(&#.*?;)|(&.*?;)|(#.*?;)/ig; // 特殊字符1
 
 class Content extends Component {
@@ -407,6 +409,15 @@ class Content extends Component {
         .replace(SpecialCharacter1, "")
     });
   }
+
+  handleReplaceHtmlB = () => {
+    this.setState({
+      fileData: this
+        .state
+        .fileData
+        .replace(htmlB, "")
+    });
+  }
   setSearchLabel = (element, label, index) => {
     let spanLabel = () => {
       element = element.split(label);
@@ -743,7 +754,7 @@ class Content extends Component {
             lastStr = (typeof lastStr === "number"
               ? lastStr
               : this.state.lastStr || 0);
-            let {sLastEnd, sLastStr} = this.selectRegExp(InternetURL, lastEnd, lastStr);
+            let {sLastEnd, sLastStr} = this.selectRegExp(InternetURL2, lastEnd, lastStr);
             this.setState({lastEnd: sLastEnd, lastStr: sLastStr});
           }}>
             网页匹配
@@ -757,10 +768,32 @@ class Content extends Component {
             lastStr = (typeof lastStr === "number"
               ? lastStr
               : this.state.lastStr || 0);
+            let {sLastEnd, sLastStr} = this.selectRegExp(htmlA, lastEnd, lastStr);
+            this.setState({lastEnd: sLastEnd, lastStr: sLastStr});
+          }}>
+            标签匹配1
+          </Button>
+          <Button
+            color="primary"
+            onClick={(lastEnd, lastStr) => {
+            lastEnd = (typeof lastEnd === "number"
+              ? lastEnd
+              : this.state.lastEnd || 0);
+            lastStr = (typeof lastStr === "number"
+              ? lastStr
+              : this.state.lastStr || 0);
             let {sLastEnd, sLastStr} = this.selectRegExp(htmlB, lastEnd, lastStr);
             this.setState({lastEnd: sLastEnd, lastStr: sLastStr});
           }}>
-            标签匹配
+            标签匹配2
+          </Button>
+          <Button
+            color="primary"
+            onClick={this.handleReplaceHtmlB}>
+            标签替换2
+          </Button>
+          <Button color="primary" onClick={this.handleSaveFile}>
+            保存文件
           </Button>
           <InputInfo
             type="input"
