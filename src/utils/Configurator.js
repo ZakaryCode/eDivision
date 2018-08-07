@@ -19,7 +19,7 @@ class Configurator {
     }
 
     @action isOpen(open) {
-        console.log(open, this.open);
+        // console.log(open, this.open);
         this.open = !!open;
     }
 
