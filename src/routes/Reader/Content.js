@@ -5,16 +5,14 @@
 
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {Paper, Button, withStyles} from 'material-ui';
+// import {Paper, Button} from 'material-ui';
+import {withStyles} from 'material-ui';
 
 // import snack from '../../store/snack';
 import DrawerLeft from "../../components/DrawerLeft";
 import leftDrawer from '../../store/leftDrawer';
-// import * as R from "../../conf/RegExp";
-
-// const fs = window.require('fs'),
-//   _path_ = window.require('path'),
-//   electron = window.require("electron");
+// import * as R from "../../conf/RegExp"; const fs = window.require('fs'),
+// _path_ = window.require('path'),   electron = window.require("electron");
 
 class Content extends Component {
   static propTypes = {

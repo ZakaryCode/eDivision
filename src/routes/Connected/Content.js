@@ -235,7 +235,7 @@ class Content extends Component {
         .files
         .filter(filter),
       selected: []
-    })
+    });
   }
 
   handleConnect = (inFiles) => () => {
