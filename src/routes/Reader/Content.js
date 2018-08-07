@@ -27,8 +27,9 @@ class Content extends Component {
 
   handleDrawerLeft = (open) => {
     this.setState({
-      open: !open
+      open: open
     });
+    leftDrawer.isOpen(open);
   };
 
   handleMouseMove = e => {
