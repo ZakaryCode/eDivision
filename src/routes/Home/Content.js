@@ -12,13 +12,15 @@ import InputInfo from "../../components/Input/InputInfo";
 
 import DialogBoard from "./Dialog";
 import * as R from "../../conf/RegExp";
+import __conf from "../../conf/index";
 
 const fs = window.require("fs"),
   _path_ = window.require("path"),
   electron = window.require("electron"),
-  remote = electron.remote,
-  ipc = electron.ipcRenderer,
-  BrowserWindow = remote.BrowserWindow;
+  remote = electron.remote;
+const ipc = electron.ipcRenderer;
+const {BrowserWindow} = remote;
+const {readerWindowOptions} = __conf;
 
 class Content extends Component {
   static propTypes = {
@@ -51,7 +53,7 @@ class Content extends Component {
       if (!exists) {
         let arr = this.state.arrayMap;
         arr = JSON.stringify(arr);
-        fs.writeFile(file, arr, function (err) {
+        fs.writeFile(file, arr, (err) => {
           if (err) {
             ipc.send("open-error-get-file-dialog");
           } else {
@@ -85,7 +87,7 @@ class Content extends Component {
     const setState = (name, data) => {
       this.handleChange(name)(data);
     };
-    ipc.on("selected-file", function (event, path) {
+    ipc.on("selected-file", (event, path) => {
       console.log(event, path);
       let __path = path[0],
         __name = _path_.basename(path[0]);
@@ -105,7 +107,7 @@ class Content extends Component {
     const setState = (name, data) => {
       this.handleChange(name)(data);
     };
-    ipc.on("selected-directory", function (event, path) {
+    ipc.on("selected-directory", (event, path) => {
       console.log(event, path);
       setState("directory", path[0]);
     });
@@ -117,7 +119,7 @@ class Content extends Component {
     const setState = (name, data) => {
       this.handleChange(name)(data);
     };
-    ipc.on("selected-directory", function (event, path) {
+    ipc.on("selected-directory", (event, path) => {
       console.log(event, path);
       setState("configure", path[0]);
     });
@@ -134,7 +136,7 @@ class Content extends Component {
       const setState = (name, data) => {
         this.handleChange(name)(data);
       };
-      fs.readFile(file, "utf8", function (err, data) {
+      fs.readFile(file, "utf8", (err, data) => {
         if (err) {
           ipc.send("open-error-get-file-dialog");
         } else {
@@ -156,7 +158,7 @@ class Content extends Component {
       console.log(file, directory, oFileData);
 
       let bookName = (book || bookD);
-      fs.writeFile(_path_.resolve(directory, bookName + ".txt"), oFileData, function (err) {
+      fs.writeFile(_path_.resolve(directory, bookName + ".txt"), oFileData, (err) => {
         if (err) {
           ipc.send("open-error-get-file-dialog");
         } else {
@@ -172,7 +174,7 @@ class Content extends Component {
     const file = this.state.configure || this.state.configureD;
     let arr = this.state.arrayMap;
     arr = JSON.stringify(arr);
-    fs.writeFile(file, arr, function (err) {
+    fs.writeFile(file, arr, (err) => {
       if (err) {
         ipc.send("open-error-get-file-dialog");
       } else {
@@ -200,27 +202,28 @@ class Content extends Component {
   };
 
   handleReadMode = () => {
-    const modalPath = _path_.join('file://', __dirname, '../../sections/windows/modal-toggle-visibility.html');
-    let win = new BrowserWindow({width: 600, height: 400, fullscreen: true, frame: true});
+    const clickHandler = () => {
+        win.focus()
+      },
+      showFocusBtn = (btn) => {
+        if (!win) 
+          return
+          // focusModalBtn.addEventListener('click', clickHandler)
+        },
+      hideFocusBtn = () => {
+        // focusModalBtn.removeEventListener('click', clickHandler)
+      };
+    let win = new BrowserWindow({
+      ...readerWindowOptions
+    });
     win.on('focus', hideFocusBtn);
     win.on('blur', showFocusBtn);
-    win.on('close', function () {
+    win.on('close', () => {
       hideFocusBtn();
       win = null;
-    })
-    win.loadURL(modalPath);
+    });
+    win.loadURL(window.location.href.replace(R.InternetURLHref, "#/Reader"));
     win.show();
-    function showFocusBtn(btn) {
-      if (!win) 
-        return
-        // focusModalBtn.addEventListener('click', clickHandler)
-      }
-    function hideFocusBtn() {
-      // focusModalBtn.removeEventListener('click', clickHandler)
-    }
-    function clickHandler() {
-      win.focus()
-    }
   }
 
   handleDeleteFile = () => {
@@ -229,14 +232,13 @@ class Content extends Component {
       snack.setMessage("请先选择文件!");
       fileInput.focus();
       return;
-    } else {
-      console.log(file);
-
-      fs.unlink(file, (err) => {
-        console.log(err);
-        snack.setMessage(file + " - 删除成功!");
-      });
     }
+    console.log(file);
+
+    fs.unlink(file, (err) => {
+      console.log(err);
+      snack.setMessage(file + " - 删除成功!");
+    });
   }
 
   handleSearch = (s, lastEnd) => {
@@ -546,7 +548,7 @@ class Content extends Component {
     const setState = (name, data) => {
         this.handleChange(name)(data);
       },
-      readF = () => fs.readFile(file, "utf8", function (err, data) {
+      readF = () => fs.readFile(file, "utf8", (err, data) => {
         if (err) {
           ipc.send("open-error-get-file-dialog");
         } else {
@@ -559,16 +561,15 @@ class Content extends Component {
     fs.exists(file, (exists) => {
       console.log(exists);
       if (!exists) {
-        fs
-          .writeFile(file, this.state.arrayMap, function (err) {
-            if (err) {
-              ipc.send("open-error-get-file-dialog");
-            } else {
-              console.log(file, "写入成功");
-              snack.setMessage(file, "写入成功");
-              readF();
-            }
-          });
+        fs.writeFile(file, this.state.arrayMap, (err) => {
+          if (err) {
+            ipc.send("open-error-get-file-dialog");
+          } else {
+            console.log(file, "写入成功");
+            snack.setMessage(file, "写入成功");
+            readF();
+          }
+        });
       } else {
         readF();
       }

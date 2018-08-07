@@ -12,6 +12,7 @@ import LinearProgress from './components/LinearProgress';
 import Home from './routes/Home';
 import Division from './routes/Division';
 import Connected from './routes/Connected';
+import Reader from './routes/Reader';
 
 const electron = window.require('electron');
 const {remote} = electron;
@@ -92,7 +93,9 @@ class App extends Component {
             <Route exact path="/" component={Home}/>
             <Route exact path="/Home" component={Home}/>
             <Route exact path="/Division" component={Division}/>
-            <Route exact path="/Connected" component={Connected}/></div>
+            <Route exact path="/Connected" component={Connected}/>
+            <Route exact path="/Reader" component={Reader}/>
+          </div>
           <Snackbar/>
           <DialogAlert/>
         </div>

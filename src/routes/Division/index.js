@@ -1,6 +1,6 @@
 /**
  * @author zakary
- * @description Home
+ * @description Division
  */
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
@@ -9,7 +9,7 @@ import {withStyles} from 'material-ui';
 import Content from './Content';
 import './index.css';
 
-class Home extends Component {
+class Division extends Component {
   static propTypes = {
     classes: PropTypes.object.isRequired
   };
@@ -26,4 +26,4 @@ class Home extends Component {
 
 const styles = (theme) => ({root: {}});
 
-export default withStyles(styles)(Home);
+export default withStyles(styles)(Division);

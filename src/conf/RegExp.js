@@ -12,4 +12,5 @@ export const htmlA = new RegExp("<(\S*?)[^>]*>.*?|<.*? />", "g");
 export const htmlB = new RegExp("<(\S*?)[^>]*>.*|<.*? />", "g");
 export const InternetURL = new RegExp(`^([a-zA-Z]\:|\\\\[^\/\\:*?"<>|]+\\[^\/\\:*?"<>|]+)(\\[^\/\\:*?"<>|]+)+(\.[^\/\\:*?"<>|]+)$`, "g");
 export const InternetURL2 = new RegExp(`[a-zA-z]+://[^\s]*`, "g");
+export const InternetURLHref = /#.*?$/;
 export const SpecialCharacter1 = /(&#.*?;)|(&.*?;)|(#.*?;)/ig; // 特殊字符1

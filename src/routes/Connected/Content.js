@@ -100,7 +100,7 @@ class Content extends Component {
     const setState = (name, data) => {
       this.handleChange(name)(data);
     };
-    ipc.on("selected-directory", function (event, path) {
+    ipc.on("selected-directory", (event, path) => {
       console.log(event, path);
       setState("directory", path[0]);
     });
@@ -179,7 +179,7 @@ class Content extends Component {
       this.handleChange(name)(data);
     };
 
-    ipc.on("selected-file", function (event, path) {
+    ipc.on("selected-file", (event, path) => {
       console.log(event, path);
       let files = inFiles,
         books = inBooks,
@@ -223,16 +223,17 @@ class Content extends Component {
   }
 
   handleDelete = () => {
-    const selected = this.state.selected;
+    const selected = this.state.selected,
+      filter = e => {
+        if (!(selected.indexOf(e) !== -1)) {
+          return e;
+        }
+      };
     this.setState({
       files: this
         .state
         .files
-        .filter(object => {
-          if (!(selected.indexOf(object) !== -1)) {
-            return object;
-          }
-        }),
+        .filter(filter),
       selected: []
     })
   }
@@ -260,7 +261,7 @@ class Content extends Component {
       writeFilesOrder = (data, index) => {
         index = Math.ceil(Number(index));
         // console.log(directory, bookName + "." + index + ".txt");
-        fs.writeFile(_path_.resolve(directory, bookName + "." + index + ".txt"), data, function (err) {
+        fs.writeFile(_path_.resolve(directory, bookName + "." + index + ".txt"), data, (err) => {
           if (err) {
             ipc.send("open-error-get-file-dialog");
           } else {

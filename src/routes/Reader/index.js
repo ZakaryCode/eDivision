@@ -1,6 +1,6 @@
 /**
  * @author zakary
- * @description Connected
+ * @description Reader
  */
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
@@ -9,7 +9,7 @@ import {withStyles} from 'material-ui';
 import Content from './Content';
 import './index.css';
 
-class Connected extends Component {
+class Reader extends Component {
   static propTypes = {
     classes: PropTypes.object.isRequired
   };
@@ -26,4 +26,4 @@ class Connected extends Component {
 
 const styles = (theme) => ({root: {}});
 
-export default withStyles(styles)(Connected);
+export default withStyles(styles)(Reader);
