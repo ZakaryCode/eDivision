@@ -26,9 +26,7 @@ class Content extends Component {
   }
 
   handleDrawerLeft = (open) => {
-    this.setState({
-      open: open
-    });
+    this.setState({open: open});
     leftDrawer.isOpen(open);
   };
 
@@ -38,7 +36,6 @@ class Content extends Component {
     // console.log(e.clientX, e.clientY, e.target);
     // console.log(BOOK_CONTENT.offsetLeft, BOOK_CONTENT.offsetTop,
     // BOOK_CONTENT.offsetWidth, BOOK_CONTENT.offsetHeight); 目录管理
-    // console.log(CATALOG);
     if (CATALOG.offsetLeft + CATALOG.offsetWidth + 10 > e.clientX && !this.state.open) {
       console.log("打开目录", CATALOG.offsetLeft + CATALOG.offsetWidth + 10, e.clientX);
       this.handleDrawerLeft(true);
