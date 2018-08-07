@@ -7,14 +7,14 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {Paper, Button, withStyles} from 'material-ui';
 
-import snack from '../../store/snack';
-import InputInfo from "../../components/Input/InputInfo";
-import * as R from "../../conf/RegExp";
+// import snack from '../../store/snack';
+import DrawerLeft from "../../components/DrawerLeft";
+import leftDrawer from '../../store/leftDrawer';
+// import * as R from "../../conf/RegExp";
 
-const fs = window.require('fs'),
-  _path_ = window.require('path'),
-  electron = window.require("electron");
-const ipc = electron.ipcRenderer;
+// const fs = window.require('fs'),
+//   _path_ = window.require('path'),
+//   electron = window.require("electron");
 
 class Content extends Component {
   static propTypes = {
@@ -23,207 +23,67 @@ class Content extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      division: "------------",
-      divisionD: "------------",
-      connect: ".",
-      connectD: ".",
-      bookD: "未命名",
-      list: {
-        connect: [".", "-", " "]
-      }
+      open: leftDrawer.open
     };
   }
 
-  handleChange = name => (value) => {
-    // console.log(name, value, value.target.value);
-    if (!value.target) {
-      this.setState({[name]: value});
-    } else {
-      this.setState({[name]: value.target.value});
+  handleDrawerLeft = (open) => {
+    this.setState({
+      open: !open
+    });
+  };
+
+  handleMouseMove = e => {
+    const {BOOK_CATALOG} = this,
+      CATALOG = BOOK_CATALOG.children[0].children[0];
+    // console.log(e.clientX, e.clientY, e.target);
+    // console.log(BOOK_CONTENT.offsetLeft, BOOK_CONTENT.offsetTop,
+    // BOOK_CONTENT.offsetWidth, BOOK_CONTENT.offsetHeight); 目录管理
+    // console.log(CATALOG);
+    if (CATALOG.offsetLeft + CATALOG.offsetWidth + 10 > e.clientX && !this.state.open) {
+      console.log("打开目录", CATALOG.offsetLeft + CATALOG.offsetWidth + 10, e.clientX);
+      this.handleDrawerLeft(true);
+    } else if (CATALOG.offsetLeft + CATALOG.offsetWidth + 10 <= e.clientX && this.state.open) {
+      console.log("关闭目录", CATALOG.offsetLeft + CATALOG.offsetWidth + 10, e.clientX);
+      this.handleDrawerLeft(false);
     }
   }
 
-  handleInputRef = name => (Input) => {
-    this.setState({[name]: Input});
-  }
-
-  handleSelectFile = () => {
-    console.log(ipc);
-    ipc.send('open-file-dialog');
-    const setState = (name, data) => {
-      this.handleChange(name)(data);
-    };
-    ipc.on('selected-file', (event, path) => {
-      console.log(event, path);
-      let __path = path[0],
-        __name = _path_.basename(path[0]);
-      console.log(__path, __name);
-      setState("file", __path);
-      setState("directory", _path_.dirname(__path));
-      __name = __name.split(".");
-      __name.pop();
-      __name = __name.join(".");
-      setState("book", __name);
-    });
-  }
-
-  handleSelectDirectory = () => {
-    console.log(ipc);
-    ipc.send('open-directory-dialog');
-    const setState = (name, data) => {
-      this.handleChange(name)(data);
-    };
-    ipc.on('selected-directory', (event, path) => {
-      console.log(event, path);
-      setState("directory", path[0]);
-    });
-  }
-
-  handleClickDirectory = () => {
-    if (!this.state.directory) {
-      snack.setMessage("请先选择输出路径!");
-      this
-        .state
-        .directoryInput
-        .focus();
-      return;
+  handleInputRef = name => node => {
+    if (node) {
+      // console.log(name, node, node.offsetLeft, node.offsetWidth, node.offsetTop,
+      // node.offsetHeight);
+      this[name] = node;
     }
-    const {
-      file,
-      book,
-      bookD,
-      division,
-      divisionD,
-      connect,
-      connectD,
-      directory
-    } = this.state;
-    console.log(file, directory);
-    fs.readFile(file, 'utf8', (err, data) => {
-      if (err) {
-        ipc.send('open-error-get-file-dialog');
-      } else {
-        // console.log(book, division, connect, data);
-        data = data.split((division || divisionD));
-        for (let index = 0; index < data.length; index++) {
-          ((index) => {
-            const element = data[index];
-            let bookName = (book || bookD) + (connect || connectD) + index;
-            let e = element.replace(R.redundancy, "");
-            console.log("bookName", bookName);
-            console.log("bookData", e, !!e);
-            if (!!e) {
-              fs.writeFile(_path_.resolve(directory, bookName + ".txt"), element, (err) => {
-                if (err) {
-                  ipc.send('open-error-get-file-dialog');
-                } else {
-                  console.log(bookName, "写入成功");
-                  snack.setMessage(bookName, "写入成功");
-                }
-              });
-            }
-          })(index);
-        }
-      }
-    });
   }
 
   render() {
     const {classes} = this.props;
-    let list = this.state.list;
 
     return (
-      <div className="content">
-        <Paper className={classes.root} elevation={4}>
-          <InputInfo
-            type='input'
-            label='文件'
-            helperText="请选择文件"
-            inputName='file'
-            inputType='text'
-            onClick={this.handleSelectFile}
-            value={this.state.file}
-            onChange={this.handleChange("file")}
-            inputRef={this.handleInputRef("fileInput")}
-            style={{
-            width: '80%'
-          }}/>
-          <InputInfo
-            type='input'
-            label='输出'
-            helperText="请选择文件输出路径"
-            inputName='directory'
-            inputType='text'
-            onClick={this.handleSelectDirectory}
-            value={this.state.directory}
-            onChange={this.handleChange("directory")}
-            inputRef={this.handleInputRef("directoryInput")}
-            style={{
-            width: '80%'
-          }}/><br/>
-          <InputInfo
-            type='input'
-            label='分隔符'
-            onChange={this.handleChange('division')}
-            inputRef={this.handleInputRef("divisionInput")}
-            value={this.state.division}
-            inputName='division'
-            inputType='text'
-            style={{
-            width: '80%'
-          }}/>
-          <Button color="primary" onClick={this.handleClickDirectory}>
-            分割文件
-          </Button>
-          <InputInfo
-            type='input'
-            label='书名'
-            onChange={this.handleChange('book')}
-            inputRef={this.handleInputRef("bookInput")}
-            value={(this.state.book || this.state.bookD) + ".txt"}
-            inputName='book'
-            inputType='text'
-            style={{
-            width: '40%',
-            marginRight: "1em"
-          }}/>
-          <InputInfo
-            type='menu'
-            label='连接符'
-            onChange={this.handleChange('connect')}
-            inputRef={this.handleInputRef("connectInput")}
-            value={this.state.connect}
-            inputName='connect'
-            inputType='text'
-            style={{
-            textAlign: "-webkit-center",
-            width: "10em"
-          }}
-            list={list
-            .connect
-            .map((e) => {
-              return {
-                label: "\"" + e + "\"",
-                value: e
-              };
-            })}/>
-        </Paper>
+      <div
+        className={classes.content}
+        onMouseLeave={this.handleMouseMove}
+        onMouseMove={this.handleMouseMove}
+        onMouseOut={this.handleMouseMove}
+        onMouseOver={this.handleMouseMove}
+        ref={this.handleInputRef("CONTENT")}>
+        <div className="bookContent" ref={this.handleInputRef("BOOK_CONTENT")}></div>
+        <div className="bookCatalog" ref={this.handleInputRef("BOOK_CATALOG")}>
+          <DrawerLeft handleDrawerLeft={this.handleDrawerLeft}/>
+        </div>
+        <div className="toolsBar" ref={this.handleInputRef("TOOLS_BAR")}></div>
       </div>
     );
   }
 }
 
 const styles = (theme) => ({
-  root: theme
-    .mixins
-    .gutters({
-      paddingTop: theme.spacing.unit * 3,
-      paddingBottom: '1.2em',
-      margin: 'auto',
-      marginBottom: '4%',
-      width: '90%',
-      position: 'relative'
-    })
+  content: {
+    width: "100%",
+    height: "100%",
+    paddingBottom: "75%"
+  }
 });
 
 export default withStyles(styles)(Content);
