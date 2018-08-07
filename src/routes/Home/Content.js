@@ -11,27 +11,14 @@ import snack from "../../store/snack";
 import InputInfo from "../../components/Input/InputInfo";
 
 import DialogBoard from "./Dialog";
+import * as R from "../../conf/RegExp";
 
-const fs = window.require("fs");
-const _path_ = window.require("path");
-const ipc = window
-  .require("electron")
-  .ipcRenderer;
-const s = /\$|\(|\)|\*|\+|\.|\?|\{|\}|\[|\]|\^|\||\\/ig;
-const newline = /\r|\n|\r\n/ig; // 行
-const multiline = /\r+|\n+|\r\n/ig; // 多空行
-const emptyEnd = /(^\s+)|(\s+$)/ig; // 首尾空格
-const redundancy = /\r|\n|\\s/ig; // 空,换行
-const spacing = /\s/ig; // 空
-const parentheses = /\([^\)]*\)/ig; // 小括号
-const bracket = /\[.*\]/ig; // 中括号
-const braces = /\{[^\}]+\}/ig; // 大括号
-const empty = /\r|\n|\\s/ig;
-const htmlA = new RegExp("<(\S*?)[^>]*>.*?|<.*? />", "g");
-const htmlB = new RegExp("<(\S*?)[^>]*>.*|<.*? />", "g");
-const InternetURL = new RegExp(`^([a-zA-Z]\:|\\\\[^\/\\:*?"<>|]+\\[^\/\\:*?"<>|]+)(\\[^\/\\:*?"<>|]+)+(\.[^\/\\:*?"<>|]+)$`, "g");
-const InternetURL2 = new RegExp(`[a-zA-z]+://[^\s]*`, "g");
-const SpecialCharacter1 = /(&#.*?;)|(&.*?;)|(#.*?;)/ig; // 特殊字符1
+const fs = window.require("fs"),
+  _path_ = window.require("path"),
+  electron = window.require("electron"),
+  remote = electron.remote,
+  ipc = electron.ipcRenderer,
+  BrowserWindow = remote.BrowserWindow;
 
 class Content extends Component {
   static propTypes = {
@@ -180,6 +167,62 @@ class Content extends Component {
     }
   }
 
+  handleDialogBoardClose = (flag) => {
+    this.setState({open: false});
+    const file = this.state.configure || this.state.configureD;
+    let arr = this.state.arrayMap;
+    arr = JSON.stringify(arr);
+    fs.writeFile(file, arr, function (err) {
+      if (err) {
+        ipc.send("open-error-get-file-dialog");
+      } else {
+        console.log(file, "写入成功");
+        snack.setMessage(file, "写入成功");
+      }
+    });
+    if (flag) {
+      console.log(this.state.arrayMap);
+      let str = this.state.fileData,
+        arrS = this
+          .state
+          .arrayMap
+          .map((e) => e.replace(R.s, e => `\\${e}`))
+          .join("|"),
+        __regexp = new RegExp(arrS, "g");
+      str = str.replace(__regexp, "");
+      console.log(arrS, __regexp);
+      this.setState({
+        fileData: str
+      }, () => {
+        console.log(this.state.fileData)
+      });
+    }
+  };
+
+  handleReadMode = () => {
+    const modalPath = _path_.join('file://', __dirname, '../../sections/windows/modal-toggle-visibility.html');
+    let win = new BrowserWindow({width: 600, height: 400, fullscreen: true, frame: true});
+    win.on('focus', hideFocusBtn);
+    win.on('blur', showFocusBtn);
+    win.on('close', function () {
+      hideFocusBtn();
+      win = null;
+    })
+    win.loadURL(modalPath);
+    win.show();
+    function showFocusBtn(btn) {
+      if (!win) 
+        return
+        // focusModalBtn.addEventListener('click', clickHandler)
+      }
+    function hideFocusBtn() {
+      // focusModalBtn.removeEventListener('click', clickHandler)
+    }
+    function clickHandler() {
+      win.focus()
+    }
+  }
+
   handleDeleteFile = () => {
     const {file, fileInput} = this.state;
     if (!file) {
@@ -207,7 +250,7 @@ class Content extends Component {
   }
 
   handleSearchAll = () => {
-    this.selectText(this.state.search.replace(s, e => `\\${e}`), true); // .replace(spacing, /\s/)
+    this.selectText(this.state.search.replace(R.s, e => `\\${e}`), true); // .replace(spacing, /\s/)
   }
 
   handleReplace = () => {
@@ -226,7 +269,7 @@ class Content extends Component {
       let search = this
           .state
           .search
-          .replace(s, e => `\\${e}`), // .replace(spacing, /\s/)
+          .replace(R.s, e => `\\${e}`), // .replace(spacing, /\s/)
         replace = this.state.replace,
         fileData = this.state.fileData,
         range = userSelection.getRangeAt(0),
@@ -238,7 +281,7 @@ class Content extends Component {
       // console.log(key);
       this.setState({
         fileData: fileData
-          .split(newline)
+          .split(R.newline)
           .map((e, i) => e.split(search).map((ee, ii, arr) => {
             if (arr.length === ii + 1) 
               return ee;
@@ -265,7 +308,7 @@ class Content extends Component {
       fileData: this
         .state
         .fileData
-        .replace(new RegExp(this.state.replace.replace(s, e => `\\${e}`), "g"), this.state.replace) // .replace(spacing, /\s/)
+        .replace(new RegExp(this.state.replace.replace(R.s, e => `\\${e}`), "g"), this.state.replace) // .replace(spacing, /\s/)
     });
   }
 
@@ -309,7 +352,7 @@ class Content extends Component {
     return lastEnd;
   }
 
-  selectRegExp = (regexp, lastEnd, lastStr) => {
+  selectRegExp = (R, lastEnd, lastStr) => {
     let input = document.getElementById("fileData"),
       value = input.innerText,
       range,
@@ -319,7 +362,7 @@ class Content extends Component {
       console.error("平台存在错误,不支持该功能!");
       return {sLastEnd: 0, sLastStr: 0};
     }
-    let strs = value.match(regexp) || [],
+    let strs = value.match(R) || [],
       str = strs[(lastEnd > strs.length
           ? strs.length
           : lastEnd)] || "",
@@ -327,13 +370,13 @@ class Content extends Component {
       end = start + str.length,
       nStart = value
         .substring(0, start)
-        .split(newline)
+        .split(R.newline)
         .map((e) => {
           return e.length
         }),
       nEnd = value
         .substring(0, end)
-        .split(newline)
+        .split(R.newline)
         .map((e) => {
           return e.length
         }),
@@ -347,7 +390,7 @@ class Content extends Component {
         if (!window.confirm("文档已经完成搜索，接下来将从头开始!")) {
           return {sLastEnd: 0, sLastStr: 0};
         }
-        return this.selectRegExp(regexp, 0, 0);
+        return this.selectRegExp(R, 0, 0);
       }
     }
     lastEnd++;
@@ -367,8 +410,8 @@ class Content extends Component {
       fileData: this
         .state
         .fileData
-        .replace(multiline, "\n")
-        .replace(emptyEnd, "")
+        .replace(R.multiline, "\n")
+        .replace(R.emptyEnd, "")
     });
     /* let input=document.getElementById("fileData"),seachDocs=input.querySelectorAll("p[name=emptyvalue]");
     seachDocs.forEach((e)=>{e.parentNode.removeChild(e);}); */
@@ -379,7 +422,7 @@ class Content extends Component {
       fileData: this
         .state
         .fileData
-        .replace(parentheses, "")
+        .replace(R.parentheses, "")
     });
   }
 
@@ -388,7 +431,7 @@ class Content extends Component {
       fileData: this
         .state
         .fileData
-        .replace(bracket, "")
+        .replace(R.bracket, "")
     });
   }
 
@@ -397,7 +440,7 @@ class Content extends Component {
       fileData: this
         .state
         .fileData
-        .replace(braces, "")
+        .replace(R.braces, "")
     });
   }
 
@@ -406,7 +449,7 @@ class Content extends Component {
       fileData: this
         .state
         .fileData
-        .replace(SpecialCharacter1, "")
+        .replace(R.SpecialCharacter1, "")
     });
   }
 
@@ -415,7 +458,7 @@ class Content extends Component {
       fileData: this
         .state
         .fileData
-        .replace(htmlB, "")
+        .replace(R.htmlB, "")
     });
   }
   setSearchLabel = (element, label, index) => {
@@ -437,7 +480,7 @@ class Content extends Component {
     }
     if (index < 5000) 
       return <p
-        name={element.replace(redundancy, "")
+        name={element.replace(R.redundancy, "")
         ? "value"
         : "emptyvalue"}
         style={{
@@ -594,37 +637,7 @@ class Content extends Component {
               arr.splice(arr.indexOf(e), 1);
             this.setState({arrayMap: arr})
           }}
-            onClose={(flag) => {
-            this.setState({open: false});
-            const file = this.state.configure || this.state.configureD;
-            let arr = this.state.arrayMap;
-            arr = JSON.stringify(arr);
-            fs.writeFile(file, arr, function (err) {
-              if (err) {
-                ipc.send("open-error-get-file-dialog");
-              } else {
-                console.log(file, "写入成功");
-                snack.setMessage(file, "写入成功");
-              }
-            });
-            if (flag) {
-              console.log(this.state.arrayMap);
-              let str = this.state.fileData,
-                arrS = this
-                  .state
-                  .arrayMap
-                  .map((e) => e.replace(s, e => `\\${e}`))
-                  .join("|"),
-                __regexp = new RegExp(arrS, "g");
-              str = str.replace(__regexp, "");
-              console.log(arrS, __regexp);
-              this.setState({
-                fileData: str
-              }, () => {
-                console.log(this.state.fileData)
-              });
-            }
-          }}
+            onClose={this.handleDialogBoardClose}
             arrayMap={this.state.arrayMap}/>
           <Button color="primary" onClick={this.handleConfigure}>
             替换配置
@@ -650,7 +663,7 @@ class Content extends Component {
             style={{
             position: "relative"
           }}>
-            {(this.state.fileData || "").split(newline).map((e, i) => this.setSearchLabel(e.toString(), this.state.search.replace(s, e => `\\${e}`), i))}
+            {(this.state.fileData || "").split(R.newline).map((e, i) => this.setSearchLabel(e.toString(), this.state.search.replace(R.s, e => `\\${e}`), i))}
           </div>
         </Paper>
         <div style={{
@@ -672,7 +685,7 @@ class Content extends Component {
             lastStr = (typeof lastStr === "number"
               ? lastStr
               : this.state.lastStr || 0);
-            let {sLastEnd, sLastStr} = this.selectRegExp(empty, lastEnd, lastStr);
+            let {sLastEnd, sLastStr} = this.selectRegExp(R.empty, lastEnd, lastStr);
             this.setState({lastEnd: sLastEnd, lastStr: sLastStr});
           }}>
             空格匹配
@@ -686,7 +699,7 @@ class Content extends Component {
             lastStr = (typeof lastStr === "number"
               ? lastStr
               : this.state.lastStr || 0);
-            let {sLastEnd, sLastStr} = this.selectRegExp(parentheses, lastEnd, lastStr);
+            let {sLastEnd, sLastStr} = this.selectRegExp(R.parentheses, lastEnd, lastStr);
             this.setState({lastEnd: sLastEnd, lastStr: sLastStr});
           }}>
             圆括号匹配
@@ -703,7 +716,7 @@ class Content extends Component {
             lastStr = (typeof lastStr === "number"
               ? lastStr
               : this.state.lastStr || 0);
-            let {sLastEnd, sLastStr} = this.selectRegExp(bracket, lastEnd, lastStr);
+            let {sLastEnd, sLastStr} = this.selectRegExp(R.bracket, lastEnd, lastStr);
             this.setState({lastEnd: sLastEnd, lastStr: sLastStr});
           }}>
             方括号匹配
@@ -720,7 +733,7 @@ class Content extends Component {
             lastStr = (typeof lastStr === "number"
               ? lastStr
               : this.state.lastStr || 0);
-            let {sLastEnd, sLastStr} = this.selectRegExp(braces, lastEnd, lastStr);
+            let {sLastEnd, sLastStr} = this.selectRegExp(R.braces, lastEnd, lastStr);
             this.setState({lastEnd: sLastEnd, lastStr: sLastStr});
           }}>
             大括号匹配
@@ -737,7 +750,7 @@ class Content extends Component {
             lastStr = (typeof lastStr === "number"
               ? lastStr
               : this.state.lastStr || 0);
-            let {sLastEnd, sLastStr} = this.selectRegExp(SpecialCharacter1, lastEnd, lastStr);
+            let {sLastEnd, sLastStr} = this.selectRegExp(R.SpecialCharacter1, lastEnd, lastStr);
             this.setState({lastEnd: sLastEnd, lastStr: sLastStr});
           }}>
             特殊字符1匹配
@@ -754,7 +767,7 @@ class Content extends Component {
             lastStr = (typeof lastStr === "number"
               ? lastStr
               : this.state.lastStr || 0);
-            let {sLastEnd, sLastStr} = this.selectRegExp(InternetURL2, lastEnd, lastStr);
+            let {sLastEnd, sLastStr} = this.selectRegExp(R.InternetURL2, lastEnd, lastStr);
             this.setState({lastEnd: sLastEnd, lastStr: sLastStr});
           }}>
             网页匹配
@@ -768,7 +781,7 @@ class Content extends Component {
             lastStr = (typeof lastStr === "number"
               ? lastStr
               : this.state.lastStr || 0);
-            let {sLastEnd, sLastStr} = this.selectRegExp(htmlA, lastEnd, lastStr);
+            let {sLastEnd, sLastStr} = this.selectRegExp(R.htmlA, lastEnd, lastStr);
             this.setState({lastEnd: sLastEnd, lastStr: sLastStr});
           }}>
             标签匹配1
@@ -782,18 +795,19 @@ class Content extends Component {
             lastStr = (typeof lastStr === "number"
               ? lastStr
               : this.state.lastStr || 0);
-            let {sLastEnd, sLastStr} = this.selectRegExp(htmlB, lastEnd, lastStr);
+            let {sLastEnd, sLastStr} = this.selectRegExp(R.htmlB, lastEnd, lastStr);
             this.setState({lastEnd: sLastEnd, lastStr: sLastStr});
           }}>
             标签匹配2
           </Button>
-          <Button
-            color="primary"
-            onClick={this.handleReplaceHtmlB}>
+          <Button color="primary" onClick={this.handleReplaceHtmlB}>
             标签替换2
           </Button>
           <Button color="primary" onClick={this.handleSaveFile}>
             保存文件
+          </Button>
+          <Button color="primary" onClick={this.handleReadMode}>
+            阅读模式
           </Button>
           <InputInfo
             type="input"

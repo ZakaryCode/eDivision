@@ -1,0 +1,15 @@
+export const s = /\$|\(|\)|\*|\+|\.|\?|\{|\}|\[|\]|\^|\||\\/ig;
+export const newline = /\r|\n|\r\n/ig; // 行
+export const multiline = /\r+|\n+|\r\n/ig; // 多空行
+export const emptyEnd = /(^\s+)|(\s+$)/ig; // 首尾空格
+export const redundancy = /\r|\n|\\s/ig; // 空,换行
+export const spacing = /\s/ig; // 空
+export const parentheses = /\([^\)]*\)/ig; // 小括号
+export const bracket = /\[.*\]/ig; // 中括号
+export const braces = /\{[^\}]+\}/ig; // 大括号
+export const empty = /\r|\n|\\s/ig;
+export const htmlA = new RegExp("<(\S*?)[^>]*>.*?|<.*? />", "g");
+export const htmlB = new RegExp("<(\S*?)[^>]*>.*|<.*? />", "g");
+export const InternetURL = new RegExp(`^([a-zA-Z]\:|\\\\[^\/\\:*?"<>|]+\\[^\/\\:*?"<>|]+)(\\[^\/\\:*?"<>|]+)+(\.[^\/\\:*?"<>|]+)$`, "g");
+export const InternetURL2 = new RegExp(`[a-zA-z]+://[^\s]*`, "g");
+export const SpecialCharacter1 = /(&#.*?;)|(&.*?;)|(#.*?;)/ig; // 特殊字符1

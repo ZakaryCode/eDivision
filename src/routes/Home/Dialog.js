@@ -32,6 +32,7 @@ class Content extends Component {
       });
     }
   }
+  
   handleClose = (e) => {
     this
       .props

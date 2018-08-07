@@ -4,7 +4,6 @@
   "private": true,
   "main": "main.js",
   "homepage": ".",
-  "DEV": true,
   "scripts": {
     "electron": "electron .",
     "electron-win": "electron-packager . division --win --out ./buildElectron --arch=x64 --asar --app-version=0.1.2 --electron-version=2.0.5",

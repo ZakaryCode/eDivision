@@ -9,13 +9,12 @@ import {Paper, Button, withStyles} from 'material-ui';
 
 import snack from '../../store/snack';
 import InputInfo from "../../components/Input/InputInfo";
+import * as R from "../../conf/RegExp";
 
-const fs = window.require('fs');
-const _path_ = window.require('path');
-const ipc = window
-  .require('electron')
-  .ipcRenderer;
-const redundancy = new RegExp("\r|\n|\\s", 'g');
+const fs = window.require('fs'),
+  _path_ = window.require('path'),
+  electron = window.require("electron"),
+  ipc = electron.ipcRenderer;
 
 class Content extends Component {
   static propTypes = {
@@ -88,47 +87,46 @@ class Content extends Component {
         .directoryInput
         .focus();
       return;
-    } else {
-      const {
-        file,
-        book,
-        bookD,
-        division,
-        divisionD,
-        connect,
-        connectD,
-        directory
-      } = this.state;
-      console.log(file, directory);
-      fs.readFile(file, 'utf8', function (err, data) {
-        if (err) {
-          ipc.send('open-error-get-file-dialog');
-        } else {
-          // console.log(book, division, connect, data);
-          data = data.split((division || divisionD));
-          for (let index = 0; index < data.length; index++) {
-            ((index) => {
-              const element = data[index];
-              let bookName = (book || bookD) + (connect || connectD) + index;
-              let e = element.replace(redundancy, "");
-              console.log("bookName", bookName);
-              console.log("bookData", e, !!e);
-              if (!!e) {
-                fs
-                  .writeFile(_path_.resolve(directory, bookName + ".txt"), element, function (err) {
-                    if (err) {
-                      ipc.send('open-error-get-file-dialog');
-                    } else {
-                      console.log(bookName, "写入成功");
-                      snack.setMessage(bookName, "写入成功");
-                    }
-                  });
-              }
-            })(index);
-          }
-        }
-      });
     }
+    const {
+      file,
+      book,
+      bookD,
+      division,
+      divisionD,
+      connect,
+      connectD,
+      directory
+    } = this.state;
+    console.log(file, directory);
+    fs.readFile(file, 'utf8', function (err, data) {
+      if (err) {
+        ipc.send('open-error-get-file-dialog');
+      } else {
+        // console.log(book, division, connect, data);
+        data = data.split((division || divisionD));
+        for (let index = 0; index < data.length; index++) {
+          ((index) => {
+            const element = data[index];
+            let bookName = (book || bookD) + (connect || connectD) + index;
+            let e = element.replace(R.redundancy, "");
+            console.log("bookName", bookName);
+            console.log("bookData", e, !!e);
+            if (!!e) {
+              fs
+                .writeFile(_path_.resolve(directory, bookName + ".txt"), element, function (err) {
+                  if (err) {
+                    ipc.send('open-error-get-file-dialog');
+                  } else {
+                    console.log(bookName, "写入成功");
+                    snack.setMessage(bookName, "写入成功");
+                  }
+                });
+            }
+          })(index);
+        }
+      }
+    });
   }
 
   render() {

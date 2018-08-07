@@ -15,11 +15,10 @@ import EnhancedTablePagination from "../../components/Table/TablePagination.jsx"
 import snack from "../../store/snack";
 import InputInfo from "../../components/Input/InputInfo";
 
-const fs = window.require("fs");
-const _path_ = window.require("path");
-const ipc = window
-  .require("electron")
-  .ipcRenderer;
+const fs = window.require("fs"),
+  _path_ = window.require("path"),
+  electron = window.require("electron"),
+  ipc = electron.ipcRenderer;
 
 const columnData = [
   {
@@ -230,10 +229,10 @@ class Content extends Component {
         .state
         .files
         .filter(object => {
-          if (!(selected.indexOf(object) !== -1)) 
+          if (!(selected.indexOf(object) !== -1)) {
             return object;
           }
-        ),
+        }),
       selected: []
     })
   }

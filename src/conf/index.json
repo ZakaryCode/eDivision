@@ -1,0 +1,14 @@
+{
+  "DEV": true,
+  "mainWindowOptions": {
+    "minWidth": 680,
+    "width": 1080,
+    "height": 840,
+    "frame": true,
+    "fullscreen": false
+  },
+  "readerWindowOptions": {
+    "frame": true,
+    "fullscreen": true
+  }
+}
