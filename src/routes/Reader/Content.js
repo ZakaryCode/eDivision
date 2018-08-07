@@ -24,7 +24,6 @@ class Content extends Component {
       open: leftDrawer.open
     };
   }
-
   handleDrawerLeft = (open) => {
     this.setState({open: open});
     leftDrawer.isOpen(open);
