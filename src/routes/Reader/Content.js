@@ -5,12 +5,15 @@
 
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-// import {Paper, Button} from 'material-ui';
-import {withStyles} from 'material-ui';
+// import {Paper, } from 'material-ui';
+import {Button, Divider, withStyles} from 'material-ui';
+import List, {ListItem, ListItemIcon, ListItemText} from 'material-ui/List';
 
 // import snack from '../../store/snack';
-import DrawerLeft from "../../components/DrawerLeft";
+import Drawer from "../../components/Drawer";
 import leftDrawer from '../../store/leftDrawer';
+import bottomDrawer from '../../store/bottomDrawer';
+import app from '../../store/app';
 // import * as R from "../../conf/RegExp"; const fs = window.require('fs'),
 // _path_ = window.require('path'),   electron = window.require("electron");
 
@@ -21,26 +24,43 @@ class Content extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      open: leftDrawer.open
+      leftOpen: leftDrawer.open,
+      bottomOpen: bottomDrawer.open
     };
   }
-  handleDrawerLeft = (open) => {
-    this.setState({open: open});
-    leftDrawer.isOpen(open);
+
+  handleDrawerOpen = name => open => {
+    this.setState({
+      [name]: open
+    }, () => {
+      console.log("handleDrawerOpen", name, this.state[name])
+    });
+    if (name === "leftOpen") {
+      leftDrawer.isOpen(open);
+    }
+    if (name === "bottomOpen") {
+      bottomDrawer.isOpen(open);
+    }
   };
 
   handleMouseMove = e => {
-    const {BOOK_CATALOG} = this,
-      CATALOG = BOOK_CATALOG.children[0].children[0];
-    // console.log(e.clientX, e.clientY, e.target);
-    // console.log(BOOK_CONTENT.offsetLeft, BOOK_CONTENT.offsetTop,
-    // BOOK_CONTENT.offsetWidth, BOOK_CONTENT.offsetHeight); 目录管理
-    if (CATALOG.offsetLeft + CATALOG.offsetWidth + 10 > e.clientX && !this.state.open) {
+    const {BOOK_CATALOG, TOOLS_BAR} = this, {leftOpen, bottomOpen} = this.state,
+      CATALOG = BOOK_CATALOG.children[0].children[0],
+      TOOLSBAR = TOOLS_BAR.children[0].children[0];
+    console.log(leftOpen, bottomOpen, CATALOG.offsetLeft + CATALOG.offsetWidth + 10, e.clientX, TOOLSBAR.offsetTop - TOOLSBAR.offsetHeight - 10, e.clientY);
+
+    if (CATALOG.offsetLeft + CATALOG.offsetWidth + 10 > e.clientX && !leftOpen) {
       console.log("打开目录", CATALOG.offsetLeft + CATALOG.offsetWidth + 10, e.clientX);
-      this.handleDrawerLeft(true);
-    } else if (CATALOG.offsetLeft + CATALOG.offsetWidth + 10 <= e.clientX && this.state.open) {
+      this.handleDrawerOpen("leftOpen")(true);
+    } else if (CATALOG.offsetLeft + CATALOG.offsetWidth + 10 <= e.clientX && leftOpen) {
       console.log("关闭目录", CATALOG.offsetLeft + CATALOG.offsetWidth + 10, e.clientX);
-      this.handleDrawerLeft(false);
+      this.handleDrawerOpen("leftOpen")(false);
+    } else if (TOOLSBAR.offsetTop - TOOLSBAR.offsetHeight - 10 < e.clientY && !bottomOpen) {
+      console.log("打开工具栏", TOOLSBAR.offsetTop - TOOLSBAR.offsetHeight - 10, e.clientY);
+      this.handleDrawerOpen("bottomOpen")(true);
+    } else if (TOOLSBAR.offsetTop - TOOLSBAR.offsetHeight - 10 >= e.clientY && bottomOpen) {
+      console.log("关闭工具栏", TOOLSBAR.offsetTop - TOOLSBAR.offsetHeight - 10, e.clientY);
+      this.handleDrawerOpen("bottomOpen")(false);
     }
   }
 
@@ -53,7 +73,8 @@ class Content extends Component {
   }
 
   render() {
-    const {classes} = this.props;
+    const {classes} = this.props, {leftOpen, bottomOpen} = this.state;
+    console.log(leftOpen, bottomOpen);
 
     return (
       <div
@@ -65,9 +86,41 @@ class Content extends Component {
         ref={this.handleInputRef("CONTENT")}>
         <div className="bookContent" ref={this.handleInputRef("BOOK_CONTENT")}></div>
         <div className="bookCatalog" ref={this.handleInputRef("BOOK_CATALOG")}>
-          <DrawerLeft handleDrawerLeft={this.handleDrawerLeft}/>
+          <Drawer
+            anchor="left"
+            open={leftOpen}
+            className={classes.drawerPaper}
+            handleDrawerOpen={this.handleDrawerOpen("leftOpen")}>
+            <div>
+              <List>
+                <ListItem button onClick={() => {}}>
+                  <ListItemText primary="主页"/>
+                </ListItem>
+              </List>
+            </div>
+          </Drawer>
         </div>
-        <div className="toolsBar" ref={this.handleInputRef("TOOLS_BAR")}></div>
+        <div className="toolsBar" ref={this.handleInputRef("TOOLS_BAR")}>
+          <Drawer
+            anchor="bottom"
+            open={bottomOpen}
+            className={classes.drawerPaper}
+            handleDrawerOpen={this.handleDrawerOpen("bottomOpen")}>
+            <div>
+              <List>
+                <Button color="primary" onClick={this.handleClickFile}>
+                  读取文件
+                </Button>
+                <Button color="primary" onClick={this.handleClickFile}>
+                  读取文件
+                </Button>
+                <Button color="primary" onClick={this.handleClickFile}>
+                  读取文件
+                </Button>
+              </List>
+            </div>
+          </Drawer>
+        </div>
       </div>
     );
   }
@@ -78,6 +131,12 @@ const styles = (theme) => ({
     width: "100%",
     height: "100%",
     paddingBottom: "75%"
+  },
+  drawerPaper: {
+    width: app.drawerWidth,
+    height: 'calc(100% - ' + app.headerHeight + ')',
+    top: app.headerHeight,
+    borderWidth: 0
   }
 });
 
