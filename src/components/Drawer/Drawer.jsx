@@ -54,9 +54,7 @@ import './Drawer.css';
     return (isThereDrawer);
   }
 }
-// <List>{mailFolderListItems}</List> <Divider/>
-// <List>{otherMailFolderListItems}</List>
 
-const styles = (theme) => ({drawerPaper: {}});
+const styles = (theme) => ({});
 
 export default withStyles(styles)(Content);
