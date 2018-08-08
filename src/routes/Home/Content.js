@@ -4,8 +4,9 @@
  */
 
 import React, {Component} from "react";
-import PropTypes from "prop-types";
-import {Paper, Button, withStyles} from "material-ui";
+import {withStyles} from '@material-ui/core/styles';
+import PropTypes from 'prop-types';
+import {Paper, Button} from "material-ui";
 
 import snack from "../../store/snack";
 import InputInfo from "../../components/Input/InputInfo";

@@ -4,10 +4,11 @@
  */
 
 import React, {Component} from 'react';
-import {Button, MobileStepper, withStyles} from 'material-ui';
+import {withStyles} from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
-import KeyboardArrowLeft from 'material-ui-icons/KeyboardArrowLeft';
-import KeyboardArrowRight from 'material-ui-icons/KeyboardArrowRight';
+import {Button, MobileStepper, Slider} from '@material-ui/core';
+import KeyboardArrowLeft from '@material-ui/icons/KeyboardArrowLeft';
+import KeyboardArrowRight from '@material-ui/icons/KeyboardArrowRight';
 
 import {observer} from 'mobx-react';
 import {observable, computed} from "mobx";
@@ -49,6 +50,14 @@ import './Stepper.css';
     });
   };
 
+  handleSwitch = (event, value) => {
+    this.setState(state => ({activeStep: value}), () => {
+      this
+        .props
+        .onSwitch(2)(value);
+    });
+  }
+
   setButton = (dis, label, i = 0) => {
     return <Button
       size="small"
@@ -69,14 +78,17 @@ import './Stepper.css';
     const {classes, start, count} = this.props;
     console.log(start, count, this.state.activeStep);
 
-    return (<MobileStepper
-      variant="progress"
-      steps={count}
-      position="static"
-      activeStep={this.state.activeStep}
-      className={classes.root}
-      backButton={this.setButton(start || 0, "上一章", 0)}
-      nextButton={this.setButton(count - 1 || 0, "下一章", 1)}/>);
+    return (
+      <div className={classes.root}>
+        {this.setButton(start || 0, "上一章", 0)}
+        <Slider
+          value={this.state.activeStep}
+          max={count - 1 || 0}
+          min={start || 0}
+          step={1}
+          onChange={this.handleSwitch}/> {this.setButton(count - 1 || 0, "下一章", 1)}
+      </div>
+    );
   }
 }
 

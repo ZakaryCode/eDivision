@@ -1,8 +1,9 @@
 import React, {Component} from 'react';
 import {Manager, Target, Popper} from 'react-popper';
+import {withStyles} from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import {Button, Typography, TextField, InputAdornment, withStyles} from 'material-ui';
+import {Button, Typography, TextField, InputAdornment} from '@material-ui/core';
 import {MenuItem, MenuList} from 'material-ui/Menu';
 
 import ClickAwayListener from 'material-ui/utils/ClickAwayListener';
@@ -154,7 +155,7 @@ class InfoInput extends Component {
                       key={index}
                       value={option.value}
                       style={{
-                        textAlign: "-webkit-center",
+                      textAlign: "-webkit-center"
                     }}>
                       {option.label}
                     </MenuItem>

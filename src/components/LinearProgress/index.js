@@ -4,8 +4,9 @@
  */
 
 import React, {Component} from 'react';
-import {LinearProgress, withStyles} from 'material-ui';
+import {withStyles} from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
+import {LinearProgress} from '@material-ui/core';
 
 import {observer} from 'mobx-react';
 

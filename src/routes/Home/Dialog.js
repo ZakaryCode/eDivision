@@ -1,10 +1,11 @@
 import React, {Component} from "react";
-import PropTypes from "prop-types";
-import {Avatar, Button, TextField, Typography, withStyles} from "material-ui";
+import {withStyles} from '@material-ui/core/styles';
+import PropTypes from 'prop-types';
+import {Avatar, Button, TextField, Typography} from "material-ui";
 import {List, ListItem, ListItemAvatar, ListItemText} from "material-ui";
 import {DialogTitle, DialogActions, DialogContent, DialogContentText, Dialog} from "material-ui";
 
-import AddIcon from 'material-ui-icons/Add';
+import AddIcon from '@material-ui/icons/Add';
 import blue from 'material-ui/colors/blue';
 
 class Content extends Component {
@@ -32,7 +33,7 @@ class Content extends Component {
       });
     }
   }
-  
+
   handleClose = (e) => {
     this
       .props

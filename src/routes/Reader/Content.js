@@ -4,9 +4,10 @@
  */
 
 import React, {Component} from 'react';
+import {withStyles} from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
-// import {Paper, } from 'material-ui';
-import {Button, Divider, withStyles} from 'material-ui';
+// import {Paper, } from '@material-ui/core';
+import {Button, Divider} from '@material-ui/core';
 import List, {ListItem, ListItemIcon, ListItemText} from 'material-ui/List';
 
 import Drawer from "../../components/Drawer";
@@ -16,10 +17,12 @@ import leftDrawer from '../../store/leftDrawer';
 import bottomDrawer from '../../store/bottomDrawer';
 import app from '../../store/app';
 import * as R from "../../conf/RegExp";
+import * as utils from "../../utils";
 
 const fs = window.require('fs'),
   _path_ = window.require('path'),
-  electron = window.require("electron");
+  electron = window.require("electron"),
+  remote = electron.remote;
 const ipc = electron.ipcRenderer;
 
 class Content extends Component {
@@ -224,11 +227,7 @@ class Content extends Component {
             handleDrawerOpen={this.handleDrawerOpen("bottomOpen")}>
             <div>
               <List>
-                <ListItem
-                  style={{
-                  textAlign: "-webkit-center",
-                  display: "block"
-                }}>
+                <ListItem className={classes.toolsBarListItem}>
                   <Stepper
                     start={0}
                     count={this.state.fileData.length}
@@ -236,19 +235,51 @@ class Content extends Component {
                     onSwitch={this.handleSwitchPage}/>
                 </ListItem>
                 <Divider/>
-                <ListItem
-                  style={{
-                  textAlign: "-webkit-center",
-                  display: "block"
-                }}>
-                  <Button color="primary" onClick={this.handleSwitchPage(0)}>
-                    上一章
-                  </Button>
+                <ListItem className={classes.toolsBarListItem}>
                   <Button color="primary" onClick={this.handleDirOpen}>
                     目录
                   </Button>
-                  <Button color="primary" onClick={this.handleSwitchPage(1)}>
-                    下一章
+                  <Button
+                    color="primary"
+                    onClick={() => {
+                    fetch("http://api.xfyun.cn/v1/service/v1/tts", {
+                      method: "post",
+                      headers: new Headers({"Content-Type": "application/x-www-form-urlencoded; charset=utf-8"}),
+                      data: utils.json2Form({
+                        "auf": "audio/L16;rate=16000",
+                        "aue": "raw",
+                        "voice_name": "xiaoyan",
+                        "speed": "50",
+                        "volume": "50",
+                        "pitch": "50",
+                        "engine_type": "intp65",
+                        "text_type": "text"
+                      })
+                    }).then((res) => {
+                      console.log(res)
+                    }).catch((err) => {
+                      console.log(err)
+                    });
+                  }}>
+                    语音
+                  </Button>
+                  <Button
+                    color="primary"
+                    onClick={() => {
+                    remote
+                      .getCurrentWindow()
+                      .minimize()
+                  }}>
+                    最小化
+                  </Button>
+                  <Button
+                    color="primary"
+                    onClick={() => {
+                    remote
+                      .getCurrentWindow()
+                      .close()
+                  }}>
+                    退出阅读
                   </Button>
                 </ListItem>
               </List>
@@ -279,6 +310,10 @@ const styles = (theme) => ({
     margin: "auto",
     borderWidth: 0,
     textAlign: "center"
+  },
+  toolsBarListItem: {
+    textAlign: "-webkit-center",
+    display: "block"
   }
 });
 

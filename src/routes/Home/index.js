@@ -3,8 +3,9 @@
  * @description Home
  */
 import React, {Component} from 'react';
+import {withStyles} from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
-import {Button, withStyles} from 'material-ui';
+import {Button} from '@material-ui/core';
 
 import Content from './Content';
 import './index.css';
@@ -24,26 +25,26 @@ class Home extends Component {
     const {classes} = this.props;
     return (
       <div className={classes.root}>
-      <div className="App-menu">
-        <Button
-          className="App-menu-button"
-          color="primary"
-          onClick={this.handleLoadURL("Home")}>
-          读取文件
-        </Button>
-        <Button
-          className="App-menu-button"
-          color="primary"
-          onClick={this.handleLoadURL("Division")}>
-          分割文件
-        </Button>
-        <Button
-          className="App-menu-button"
-          color="primary"
-          onClick={this.handleLoadURL("Connected")}>
-          合并文件
-        </Button>
-      </div>
+        <div className="App-menu">
+          <Button
+            className="App-menu-button"
+            color="primary"
+            onClick={this.handleLoadURL("Home")}>
+            读取文件
+          </Button>
+          <Button
+            className="App-menu-button"
+            color="primary"
+            onClick={this.handleLoadURL("Division")}>
+            分割文件
+          </Button>
+          <Button
+            className="App-menu-button"
+            color="primary"
+            onClick={this.handleLoadURL("Connected")}>
+            合并文件
+          </Button>
+        </div>
         <Content/>
       </div>
     );

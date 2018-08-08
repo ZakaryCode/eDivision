@@ -4,7 +4,8 @@
  */
 
 import React, {Component} from 'react';
-import {Drawer, withStyles} from 'material-ui';
+import {Drawer} from '@material-ui/core';
+import {withStyles} from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
 
 import {observer} from 'mobx-react';

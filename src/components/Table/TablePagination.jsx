@@ -3,14 +3,14 @@
  * @description:   表格样式
  */
 import React, {Component} from 'react';
-import {IconButton, withStyles} from 'material-ui';
-import {TablePagination} from 'material-ui/Table';
-import FirstPageIcon from 'material-ui-icons/FirstPage';
-import KeyboardArrowLeft from 'material-ui-icons/KeyboardArrowLeft';
-import KeyboardArrowRight from 'material-ui-icons/KeyboardArrowRight';
-import LastPageIcon from 'material-ui-icons/LastPage';
-
+import {withStyles} from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
+import {IconButton} from '@material-ui/core';
+import {TablePagination} from 'material-ui/Table';
+import FirstPageIcon from '@material-ui/icons/FirstPage';
+import KeyboardArrowLeft from '@material-ui/icons/KeyboardArrowLeft';
+import KeyboardArrowRight from '@material-ui/icons/KeyboardArrowRight';
+import LastPageIcon from '@material-ui/icons/LastPage';
 
 class TablePaginationActions extends Component {
   static propTypes = {
@@ -47,13 +47,7 @@ class TablePaginationActions extends Component {
   };
 
   render() {
-    const {
-      classes,
-      count,
-      page,
-      rowsPerPage,
-      theme
-    } = this.props;
+    const {classes, count, page, rowsPerPage, theme} = this.props;
 
     return (
       <div className={classes.root}>
@@ -118,13 +112,7 @@ class EnhancedTableHead extends Component {
   };
 
   render() {
-    const {
-      count,
-      rowsPerPage,
-      page,
-      onChangePage,
-      onChangeRowsPerPage
-    } = this.props;
+    const {count, rowsPerPage, page, onChangePage, onChangeRowsPerPage} = this.props;
     // console.log(page+'-'+rowsPerPage+'-'+count);
 
     return (<TablePagination

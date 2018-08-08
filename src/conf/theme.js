@@ -3,7 +3,7 @@
  * @description 配置material-ui的主题
  */
 
-import {createMuiTheme} from 'material-ui';
+import {createMuiTheme} from '@material-ui/core';
 
 import {red} from 'material-ui/colors';
 

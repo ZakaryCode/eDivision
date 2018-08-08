@@ -3,9 +3,10 @@
  * @description:   表格样式
  */
 import React, {Component} from 'react';
-import {Checkbox, Tooltip, withStyles} from 'material-ui';
-import {TableCell, TableHead, TableRow, TableSortLabel} from 'material-ui/Table';
+import {withStyles} from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
+import {Checkbox, Tooltip} from '@material-ui/core';
+import {TableCell, TableHead, TableRow, TableSortLabel} from 'material-ui/Table';
 
 class EnhancedTableHead extends Component {
   static propTypes = {

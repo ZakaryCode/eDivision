@@ -4,8 +4,9 @@
  */
 
 import React, {Component} from "react";
-import PropTypes from "prop-types";
-import {Paper, Button, Checkbox, withStyles} from "material-ui";
+import {withStyles} from '@material-ui/core/styles';
+import PropTypes from 'prop-types';
+import {Paper, Button, Checkbox} from "material-ui";
 import Table, {TableBody, TableCell, TableRow} from "material-ui/Table";
 
 import EnhancedTableHead from "../../components/Table/TableHead.jsx";

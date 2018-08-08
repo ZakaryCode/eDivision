@@ -3,8 +3,9 @@
  * @description Home
  */
 import React, {Component} from 'react';
+import {withStyles} from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
-import {Button, withStyles} from 'material-ui';
+import {Button} from '@material-ui/core';
 
 import Content from './Content';
 import './index.css';

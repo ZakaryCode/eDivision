@@ -3,13 +3,14 @@
  * @description:   表格样式
  */
 import React from 'react';
-import {Toolbar, Typography, IconButton, Tooltip, withStyles} from 'material-ui';
+import {withStyles} from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
+import {Toolbar, Typography, IconButton, Tooltip} from '@material-ui/core';
 import classNames from 'classnames';
-import DeleteIcon from 'material-ui-icons/Delete';
-// import FilterListIcon from 'material-ui-icons/FilterList';
-import AddIcon from 'material-ui-icons/Add';
-import CallMergeIcon from 'material-ui-icons/CallMerge';
+import DeleteIcon from '@material-ui/icons/Delete';
+// import FilterListIcon from '@material-ui/icons/FilterList';
+import AddIcon from '@material-ui/icons/Add';
+import CallMergeIcon from '@material-ui/icons/CallMerge';
 import {lighten} from 'material-ui/styles/colorManipulator';
 
 let EnhancedTableToolbar = (props) => {

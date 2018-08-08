@@ -3,9 +3,10 @@
  * @description:   表格样式
  */
 import React, {Component} from 'react';
-import {Paper, Checkbox, withStyles} from 'material-ui';
-import Table, {TableBody, TableCell, TableHead, TablePagination, TableRow} from 'material-ui/Table';
+import {withStyles} from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
+import {Paper, Checkbox} from '@material-ui/core';
+import Table, {TableBody, TableCell, TableHead, TablePagination, TableRow} from 'material-ui/Table';
 
 import EnhancedTableHead from './TableHead.jsx';
 import EnhancedTableToolbar from './TableToolBar.jsx';
