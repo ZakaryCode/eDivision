@@ -3,10 +3,15 @@
  * @description:   表格样式
  */
 import React, {Component} from 'react';
-import {withStyles} from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
-import {Paper, Checkbox} from '@material-ui/core';
-import Table, {TableBody, TableCell, TableHead, TablePagination, TableRow} from 'material-ui/Table';
+import {withStyles} from '@material-ui/core/styles';
+import Checkbox from '@material-ui/core/Checkbox';
+import Paper from '@material-ui/core/Paper';
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TablePagination from '@material-ui/core/TablePagination';
+import TableRow from '@material-ui/core/TableRow';
 
 import EnhancedTableHead from './TableHead.jsx';
 import EnhancedTableToolbar from './TableToolBar.jsx';

@@ -4,10 +4,15 @@
  */
 
 import React, {Component} from "react";
-import {withStyles} from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
-import {Paper, Button, Checkbox} from "material-ui";
-import Table, {TableBody, TableCell, TableRow} from "material-ui/Table";
+import {withStyles} from '@material-ui/core/styles';
+import Button from '@material-ui/core/Button';
+import Checkbox from '@material-ui/core/Checkbox';
+import Paper from '@material-ui/core/Paper';
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableRow from '@material-ui/core/TableRow';
 
 import EnhancedTableHead from "../../components/Table/TableHead.jsx";
 import EnhancedTableToolbar from "../../components/Table/TableToolBar.jsx";

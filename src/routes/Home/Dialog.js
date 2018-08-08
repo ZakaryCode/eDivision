@@ -1,12 +1,22 @@
 import React, {Component} from "react";
-import {withStyles} from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
-import {Avatar, Button, TextField, Typography} from "material-ui";
-import {List, ListItem, ListItemAvatar, ListItemText} from "material-ui";
-import {DialogTitle, DialogActions, DialogContent, DialogContentText, Dialog} from "material-ui";
+import {withStyles} from '@material-ui/core/styles';
+import Avatar from '@material-ui/core/Avatar';
+import Button from '@material-ui/core/Button';
+import TextField from '@material-ui/core/TextField';
+import Typography from '@material-ui/core/Typography';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemAvatar from '@material-ui/core/ListItemAvatar';
+import ListItemText from '@material-ui/core/ListItemText';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
 
 import AddIcon from '@material-ui/icons/Add';
-import blue from 'material-ui/colors/blue';
+import blue from '@material-ui/core/colors/blue';
 
 class Content extends Component {
   static propTypes = {

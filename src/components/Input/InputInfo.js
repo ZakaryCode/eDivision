@@ -1,14 +1,18 @@
 import React, {Component} from 'react';
 import {Manager, Target, Popper} from 'react-popper';
-import {withStyles} from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
+import {withStyles} from '@material-ui/core/styles';
 import classNames from 'classnames';
-import {Button, Typography, TextField, InputAdornment} from '@material-ui/core';
-import {MenuItem, MenuList} from 'material-ui/Menu';
-
-import ClickAwayListener from 'material-ui/utils/ClickAwayListener';
-import Grow from 'material-ui/transitions/Grow';
-import Paper from 'material-ui/Paper';
+import Button from '@material-ui/core/Button';
+import ClickAwayListener from '@material-ui/core/ClickAwayListener';
+import Grow from '@material-ui/core/Grow';
+import InputAdornment from '@material-ui/core/InputAdornment';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
+import MenuList from '@material-ui/core/MenuList';
+import Paper from '@material-ui/core/Paper';
+import TextField from '@material-ui/core/TextField';
+import Typography from '@material-ui/core/Typography';
 
 import SelectWrapped from "./SelectWrapped";
 

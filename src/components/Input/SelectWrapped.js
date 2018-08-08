@@ -1,13 +1,15 @@
 import React, {Component} from 'react';
-// import {withStyles} from '@material-ui/core';
-import Typography from 'material-ui/Typography';
-import {MenuItem} from 'material-ui/Menu';
+import Select from 'react-select';
+// import {withStyles} from '@material-ui/core/styles';
+import Chip from '@material-ui/core/Chip';
+import Typography from '@material-ui/core/Typography';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
+
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import CancelIcon from '@material-ui/icons/Cancel';
 import ArrowDropUpIcon from '@material-ui/icons/ArrowDropUp';
 import ClearIcon from '@material-ui/icons/Clear';
-import Chip from 'material-ui/Chip';
-import Select from 'react-select';
 
 export default function SelectWrapped(props) {
   const {

@@ -4,11 +4,13 @@
  */
 
 import React, {Component} from 'react';
-import {withStyles} from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
-// import {Paper, } from '@material-ui/core';
-import {Button, Divider} from '@material-ui/core';
-import List, {ListItem, ListItemIcon, ListItemText} from 'material-ui/List';
+import {withStyles} from '@material-ui/core/styles';
+import Button from '@material-ui/core/Button';
+import Divider from '@material-ui/core/Divider';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
 
 import Drawer from "../../components/Drawer";
 import Stepper from "../../components/Stepper";
@@ -312,9 +314,9 @@ const styles = (theme) => ({
     textAlign: "center"
   },
   toolsBarListItem: {
-    textAlign: "-webkit-center",
+    textAlign: "center",
     display: "block"
   }
-});
+})
 
 export default withStyles(styles)(Content);

@@ -4,9 +4,11 @@
  */
 
 import React, {Component} from 'react';
-import {withStyles} from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
-import {Button, MobileStepper, Slider} from '@material-ui/core';
+import {withStyles} from '@material-ui/core/styles';
+import Button from '@material-ui/core/Button';
+import MobileStepper from '@material-ui/core/MobileStepper';
+import Slider from '@material-ui/lab/Slider';
 import KeyboardArrowLeft from '@material-ui/icons/KeyboardArrowLeft';
 import KeyboardArrowRight from '@material-ui/icons/KeyboardArrowRight';
 
@@ -17,6 +19,7 @@ import './Stepper.css';
 @observer class Content extends Component {
   static propTypes = {
     classes: PropTypes.object.isRequired,
+    styles: PropTypes.object.isRequired,
     theme: PropTypes.object.isRequired,
     steps: PropTypes.number.isRequired,
     start: PropTypes.number.isRequired,
@@ -64,7 +67,10 @@ import './Stepper.css';
       onClick={i === 1
       ? this.handleNext
       : this.handleBack}
-      disabled={this.state.activeStep === dis}>
+      disabled={this.state.activeStep === dis}
+      style={{
+      flex: "none"
+    }}>
       {i === 1
         ? label
         : <KeyboardArrowLeft/>}
@@ -75,11 +81,11 @@ import './Stepper.css';
   };
 
   render() {
-    const {classes, start, count} = this.props;
+    const {classes, styles, start, count} = this.props;
     console.log(start, count, this.state.activeStep);
 
     return (
-      <div className={classes.root}>
+      <div className={classes.root} style={styles}>
         {this.setButton(start || 0, "上一章", 0)}
         <Slider
           value={this.state.activeStep}
@@ -94,9 +100,9 @@ import './Stepper.css';
 
 const styles = (theme) => ({
   root: {
-    maxWidth: 400,
-    flexGrow: 1,
-    backgroundColor: "rgba(255, 255, 255, 0)"
+    display: "-webkit-box",
+    margin: "auto",
+    display: "flex"
   }
 });
 
