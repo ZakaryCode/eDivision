@@ -14,6 +14,7 @@ import './Drawer.css';
 @observer class Content extends Component {
   static propTypes = {
     classes: PropTypes.object.isRequired,
+    className: PropTypes.object.isRequired,
     anchor: PropTypes.string.isRequired,
     open: PropTypes.bool.isRequired,
     handleDrawerOpen: PropTypes.func.isRequired
@@ -34,7 +35,7 @@ import './Drawer.css';
   };
 
   render() {
-    const {classes, anchor, open, children} = this.props;
+    const {classes, className, anchor, open, children} = this.props;
 
     let isThereDrawer = (
       <Drawer
@@ -42,9 +43,12 @@ import './Drawer.css';
         variant="persistent"
         open={open}
         onClose={this.handleClose}
-        classes={{
-        paper: classes.drawerPaper
-      }}>{children}</Drawer>
+        style={{
+        visibility: open
+          ? "visible"
+          : "hidden"
+      }}
+        className={className}>{children}</Drawer>
     );
     return (isThereDrawer);
   }
