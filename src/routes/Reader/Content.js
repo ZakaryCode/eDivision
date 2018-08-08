@@ -153,11 +153,13 @@ class Content extends Component {
     }
   }
 
-  handleSwitchPage = flag => () => {
+  handleSwitchPage = flag => (count) => {
     let i;
-    if (flag === 1) {
+    if (flag === 2) {
+      i = count;
+    } else if (flag === 1) {
       i = this.state.fileIndex + 1;
-    } else {
+    } else if (flag === 0) {
       i = this.state.fileIndex - 1;
     }
     if (i === this.state.fileData.length) {
@@ -199,7 +201,12 @@ class Content extends Component {
                   for (let index = 0; index < p.length; index++) {
                     const element = p[index];
                     if (element) {
-                      return <ListItem button onClick={() => {}}>
+                      return <ListItem
+                        button
+                        onClick={() => {
+                        this.handleSwitchPage(2)(i);
+                        this.handleDrawerOpen("leftOpen")(false);
+                      }}>
                         <ListItemText primary={element}/>
                       </ListItem>
                     }
@@ -222,7 +229,11 @@ class Content extends Component {
                   textAlign: "-webkit-center",
                   display: "block"
                 }}>
-                  <Stepper start={0} count={this.state.fileData.length - 1} onSwitch={this.handleSwitchPage}/>
+                  <Stepper
+                    start={0}
+                    count={this.state.fileData.length}
+                    steps={fileIndex}
+                    onSwitch={this.handleSwitchPage}/>
                 </ListItem>
                 <Divider/>
                 <ListItem

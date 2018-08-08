@@ -25,7 +25,7 @@ import './Stepper.css';
   constructor(props) {
     super(props);
     this.state = {
-      activeStep: 0
+      activeStep: this.props.steps
     };
   }
 
