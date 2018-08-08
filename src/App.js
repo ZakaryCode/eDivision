@@ -46,12 +46,6 @@ class App extends Component {
     });
   }
 
-  handleLoadURL = (name) => () => {
-    let hash = "/" + name;
-    window.location.hash = hash;
-    console.log(window.location, window.location.hash);
-  }
-
   render() {
     return (
       <Router className="App">
@@ -68,26 +62,6 @@ class App extends Component {
               <DevTools/>
             </div>
           </header>
-          <div className="App-menu">
-            <Button
-              className="App-menu-button"
-              color="primary"
-              onClick={this.handleLoadURL("Home")}>
-              读取文件
-            </Button>
-            <Button
-              className="App-menu-button"
-              color="primary"
-              onClick={this.handleLoadURL("Division")}>
-              分割文件
-            </Button>
-            <Button
-              className="App-menu-button"
-              color="primary"
-              onClick={this.handleLoadURL("Connected")}>
-              合并文件
-            </Button>
-          </div>
           <div>
             <LinearProgress/>
             <Route exact path="/" component={Home}/>

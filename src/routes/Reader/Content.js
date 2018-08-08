@@ -31,6 +31,7 @@ class Content extends Component {
       division: "------------",
       divisionD: "------------",
       fileData: [],
+      fileIndex: 0,
       leftOpen: leftDrawer.open,
       bottomOpen: bottomDrawer.open
     };
@@ -111,6 +112,38 @@ class Content extends Component {
     this.handleDrawerOpen("leftOpen")(true);
   }
 
+  setSearchLabel = (element, label, index) => {
+    let spanLabel = () => {
+      element = element.split(label);
+      if (!element.length) 
+        return <span name="value"><br/></span>;
+      return element.map((e, i) => {
+        if (element.length === i + 1) 
+          return <span>{e}</span>;
+        return <span>{e}
+          <a
+            rel="displayYellow"
+            ref={label}
+            href={"#" + label + "-" + index + "-" + i}
+            key={"#" + label + "-" + index + "-" + i}>{label}</a>
+        </span>;
+      });
+    }
+    if (index < 5000) 
+      return <p
+        name={element.replace(R.redundancy, "")
+        ? "value"
+        : "emptyvalue"}
+        style={{
+        whiteSpace: "pre-wrap",
+        webkitMarginBefore: 0,
+        webkitMarginAfter: 0
+      }}>{label
+          ? spanLabel(element, label, index)
+          : <span>{element}</span>}</p>;
+    return null;
+  }
+
   handleInputRef = name => node => {
     if (node) {
       // console.log(name, node, node.offsetLeft, node.offsetWidth, node.offsetTop,
@@ -119,8 +152,25 @@ class Content extends Component {
     }
   }
 
+  handleSwitchPage = flag => () => {
+    let i;
+    if (flag === 1) {
+      i = this.state.fileIndex + 1;
+    } else {
+      i = this.state.fileIndex - 1;
+    }
+    if (i === this.state.fileData.length) {
+      snack.setMessage("已经是最后一章了!");
+      return;
+    } else if (i < 0) {
+      snack.setMessage("已经是第一章了!");
+      return;
+    }
+    this.setState({fileIndex: i});
+  }
+
   render() {
-    const {classes} = this.props, {leftOpen, bottomOpen, fileData} = this.state;
+    const {classes} = this.props, {leftOpen, bottomOpen, fileData, fileIndex} = this.state;
     console.log(leftOpen, bottomOpen);
 
     return (
@@ -132,7 +182,9 @@ class Content extends Component {
         onMouseOut={this.handleMouseMove(0)}
         onMouseOver={this.handleMouseMove(0)}
         ref={this.handleInputRef("CONTENT")}>
-        <div className="bookContent" ref={this.handleInputRef("BOOK_CONTENT")}></div>
+        <div className={classes.bookContent} ref={this.handleInputRef("BOOK_CONTENT")}>
+          {this.setSearchLabel((fileData[fileIndex] || "").toString(), "", fileIndex)}
+        </div>
         <div className="bookCatalog" ref={this.handleInputRef("BOOK_CATALOG")}>
           <Drawer
             anchor="left"
@@ -164,13 +216,13 @@ class Content extends Component {
             handleDrawerOpen={this.handleDrawerOpen("bottomOpen")}>
             <div>
               <List>
-                <Button color="primary" onClick={this.handleClickFile}>
+                <Button color="primary" onClick={this.handleSwitchPage(0)}>
                   上一章
                 </Button>
                 <Button color="primary" onClick={this.handleDirOpen}>
                   目录
                 </Button>
-                <Button color="primary" onClick={this.handleClickFile}>
+                <Button color="primary" onClick={this.handleSwitchPage(1)}>
                   下一章
                 </Button>
               </List>
@@ -185,8 +237,10 @@ class Content extends Component {
 const styles = (theme) => ({
   content: {
     width: "100%",
-    height: "100%",
-    paddingBottom: "75%"
+    height: "100vh"
+  },
+  bookContent: {
+    padding: theme.spacing.unit * 3
   },
   drawerPaper: {
     width: app.drawerWidth,
