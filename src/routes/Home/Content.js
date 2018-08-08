@@ -29,6 +29,7 @@ class Content extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      file: "D:\\NutstoreSave\\电纸书\\神级整形师\\神级整形师.[136-789].1.txt",
       fileData: "",
       division: "------------",
       divisionD: "------------",

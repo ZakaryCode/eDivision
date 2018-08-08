@@ -9,8 +9,9 @@ import PropTypes from 'prop-types';
 import {Button, Divider, withStyles} from 'material-ui';
 import List, {ListItem, ListItemIcon, ListItemText} from 'material-ui/List';
 
-import snack from '../../store/snack';
 import Drawer from "../../components/Drawer";
+import Stepper from "../../components/Stepper";
+import snack from '../../store/snack';
 import leftDrawer from '../../store/leftDrawer';
 import bottomDrawer from '../../store/bottomDrawer';
 import app from '../../store/app';
@@ -183,7 +184,7 @@ class Content extends Component {
         onMouseOver={this.handleMouseMove(0)}
         ref={this.handleInputRef("CONTENT")}>
         <div className={classes.bookContent} ref={this.handleInputRef("BOOK_CONTENT")}>
-          {this.setSearchLabel((fileData[fileIndex] || "").toString(), "", fileIndex)}
+          {this.setSearchLabel((fileData[fileIndex] || "").replace(R.multiline, "\n").replace(R.emptyEnd, "").toString(), "", fileIndex)}
         </div>
         <div className="bookCatalog" ref={this.handleInputRef("BOOK_CATALOG")}>
           <Drawer
@@ -216,15 +217,29 @@ class Content extends Component {
             handleDrawerOpen={this.handleDrawerOpen("bottomOpen")}>
             <div>
               <List>
-                <Button color="primary" onClick={this.handleSwitchPage(0)}>
-                  上一章
-                </Button>
-                <Button color="primary" onClick={this.handleDirOpen}>
-                  目录
-                </Button>
-                <Button color="primary" onClick={this.handleSwitchPage(1)}>
-                  下一章
-                </Button>
+                <ListItem
+                  style={{
+                  textAlign: "-webkit-center",
+                  display: "block"
+                }}>
+                  <Stepper start={0} count={this.state.fileData.length - 1} onSwitch={this.handleSwitchPage}/>
+                </ListItem>
+                <Divider/>
+                <ListItem
+                  style={{
+                  textAlign: "-webkit-center",
+                  display: "block"
+                }}>
+                  <Button color="primary" onClick={this.handleSwitchPage(0)}>
+                    上一章
+                  </Button>
+                  <Button color="primary" onClick={this.handleDirOpen}>
+                    目录
+                  </Button>
+                  <Button color="primary" onClick={this.handleSwitchPage(1)}>
+                    下一章
+                  </Button>
+                </ListItem>
               </List>
             </div>
           </Drawer>
