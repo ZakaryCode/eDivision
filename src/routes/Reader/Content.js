@@ -9,13 +9,16 @@ import PropTypes from 'prop-types';
 import {Button, Divider, withStyles} from 'material-ui';
 import List, {ListItem, ListItemIcon, ListItemText} from 'material-ui/List';
 
-// import snack from '../../store/snack';
+import snack from '../../store/snack';
 import Drawer from "../../components/Drawer";
 import leftDrawer from '../../store/leftDrawer';
 import bottomDrawer from '../../store/bottomDrawer';
 import app from '../../store/app';
-// import * as R from "../../conf/RegExp"; const fs = window.require('fs'),
-// _path_ = window.require('path'),   electron = window.require("electron");
+// import * as R from "../../conf/RegExp";
+const fs = window.require('fs'),
+  _path_ = window.require('path'),
+  electron = window.require("electron");
+const ipc = electron.ipcRenderer;
 
 class Content extends Component {
   static propTypes = {
@@ -27,6 +30,40 @@ class Content extends Component {
       leftOpen: leftDrawer.open,
       bottomOpen: bottomDrawer.open
     };
+    const setState = (name, data, s = () => {}) => {
+      this.setState({
+        [name]: data
+      }, s);
+    };
+    ipc.on('Reader-Path-Send', (event, data) => {
+      setTimeout(() => {
+        console.log("Reader-Path-Send", data);
+        setState("file", data, this.handleClickFile);
+      }, 500);
+    });
+  }
+
+  handleClickFile = () => {
+    const {file} = this.state,
+      setState = (name, data, s = () => {}) => {
+        this.setState({
+          [name]: data
+        }, s);
+      };
+    if (!file) {
+      snack.setMessage("请先选择文件!");
+      return;
+    } else {
+      console.log("file", file);
+      fs.readFile(file, "utf8", (err, data) => {
+        if (err) {
+          ipc.send("open-error-get-file-dialog");
+        } else {
+          console.log("fileData", data);
+          setState("fileData", data);
+        }
+      });
+    }
   }
 
   handleDrawerOpen = name => open => {

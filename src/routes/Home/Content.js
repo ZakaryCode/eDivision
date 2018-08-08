@@ -202,7 +202,8 @@ class Content extends Component {
   };
 
   handleReadMode = () => {
-    const clickHandler = () => {
+    const {file, fileInput} = this.state,
+      clickHandler = () => {
         win.focus()
       },
       showFocusBtn = (btn) => {
@@ -213,6 +214,11 @@ class Content extends Component {
       hideFocusBtn = () => {
         // focusModalBtn.removeEventListener('click', clickHandler)
       };
+    if (!file) {
+      snack.setMessage("请先选择文件!");
+      fileInput.focus();
+      return;
+    }
     let win = new BrowserWindow({
       ...readerWindowOptions
     });
@@ -224,6 +230,13 @@ class Content extends Component {
     });
     win.loadURL(window.location.href.replace(R.InternetURLHref, "#/Reader"));
     win.show();
+    win
+      .webContents
+      .on('did-finish-load', () => {
+        win
+          .webContents
+          .send('Reader-Path-Send', file);
+      });
   }
 
   handleDeleteFile = () => {
