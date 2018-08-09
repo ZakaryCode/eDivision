@@ -36,7 +36,7 @@ import './Drawer.css';
   };
 
   render() {
-    const {classes, className, anchor, open, children} = this.props;
+    const {className, anchor, open, children} = this.props;
 
     let isThereDrawer = (
       <Drawer

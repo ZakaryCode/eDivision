@@ -7,13 +7,12 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withStyles} from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
-import MobileStepper from '@material-ui/core/MobileStepper';
+// import MobileStepper from '@material-ui/core/MobileStepper';
 import Slider from '@material-ui/lab/Slider';
 import KeyboardArrowLeft from '@material-ui/icons/KeyboardArrowLeft';
 import KeyboardArrowRight from '@material-ui/icons/KeyboardArrowRight';
 
 import {observer} from 'mobx-react';
-import {observable, computed} from "mobx";
 import './Stepper.css';
 
 @observer class Content extends Component {
@@ -100,7 +99,7 @@ import './Stepper.css';
 
 const styles = (theme) => ({
   root: {
-    display: "-webkit-box",
+    // display: "-webkit-box",
     margin: "auto",
     display: "flex"
   }

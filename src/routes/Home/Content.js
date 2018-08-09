@@ -21,7 +21,7 @@ const fs = window.require("fs"),
   electron = window.require("electron"),
   remote = electron.remote;
 const ipc = electron.ipcRenderer;
-const {BrowserWindow, Menu} = remote;
+const {BrowserWindow} = remote;
 const {readerWindowOptions} = __conf;
 
 class Content extends Component {

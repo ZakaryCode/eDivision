@@ -17,12 +17,13 @@ import Stepper from "../../components/Stepper";
 import snack from '../../store/snack';
 import leftDrawer from '../../store/leftDrawer';
 import bottomDrawer from '../../store/bottomDrawer';
+import bottomDrawerTools from '../../store/bottomDrawerTools';
 import app from '../../store/app';
 import * as R from "../../conf/RegExp";
 import * as utils from "../../utils";
 
 const fs = window.require('fs'),
-  _path_ = window.require('path'),
+  // _path_ = window.require('path'),
   electron = window.require("electron"),
   remote = electron.remote;
 const ipc = electron.ipcRenderer;
@@ -39,7 +40,8 @@ class Content extends Component {
       fileData: [],
       fileIndex: 0,
       leftOpen: leftDrawer.open,
-      bottomOpen: bottomDrawer.open
+      bottomOpen: bottomDrawer.open,
+      bottomOpenSetting: bottomDrawerTools.open
     };
     const setState = (name, data, s = () => {}) => {
         this.setState({
@@ -59,7 +61,7 @@ class Content extends Component {
     ipc.on('Reader-Path-Send', (event, data) => {
       const i = getFile(data);
       console.log("Reader-Path-Send", i, data);
-      if (i === 2 || i === 1 && window.confirm("是否重载阅读器？")) {
+      if (i === 2 || (i === 1 && window.confirm("是否重载阅读器？"))) {
         setState("file", data, this.handleClickFile);
       }
     });
@@ -90,6 +92,7 @@ class Content extends Component {
   }
 
   handleDrawerOpen = name => open => {
+    console.log("handleDrawerOpen", name, open);
     this.setState({
       [name]: open
     }, () => {
@@ -101,32 +104,46 @@ class Content extends Component {
     if (name === "bottomOpen") {
       bottomDrawer.isOpen(open);
     }
+    if (name === "bottomOpenSetting") {
+      bottomDrawerTools.isOpen(open);
+    }
   };
 
   handleMouseMove = i => e => {
-    const {BOOK_CATALOG, TOOLS_BAR} = this, {leftOpen, bottomOpen} = this.state,
+    const {BOOK_CATALOG, TOOLS_BAR, TOOLS_BAR_SETTING} = this, {leftOpen, bottomOpen, bottomOpenSetting} = this.state,
       CATALOG = BOOK_CATALOG.children[0].children[0],
-      TOOLSBAR = TOOLS_BAR.children[0].children[0];
-    console.log(leftOpen, bottomOpen, CATALOG.offsetLeft + CATALOG.offsetWidth + 10, e.clientX, TOOLSBAR.offsetTop - TOOLSBAR.offsetHeight - 10, e.clientY);
-
-    if (CATALOG.offsetLeft + CATALOG.offsetWidth + 10 > e.clientX && !leftOpen) {
-      // console.log("打开目录", CATALOG.offsetLeft + CATALOG.offsetWidth + 10,
-      // e.clientX); this.handleDrawerOpen("leftOpen")(true);
-    } else if (CATALOG.offsetLeft + CATALOG.offsetWidth + 10 <= e.clientX && leftOpen && i === 1) {
-      console.log("关闭目录", CATALOG.offsetLeft + CATALOG.offsetWidth + 10, e.clientX);
-      this.handleDrawerOpen("leftOpen")(false);
-    } else if (TOOLSBAR.offsetTop - TOOLSBAR.offsetHeight - 10 < e.clientY && !bottomOpen && !leftOpen) {
-      console.log("打开工具栏", TOOLSBAR.offsetTop - TOOLSBAR.offsetHeight - 10, e.clientY);
-      this.handleDrawerOpen("bottomOpen")(true);
-    } else if (TOOLSBAR.offsetTop - TOOLSBAR.offsetHeight - 10 >= e.clientY && bottomOpen) {
-      console.log("关闭工具栏", TOOLSBAR.offsetTop - TOOLSBAR.offsetHeight - 10, e.clientY);
-      this.handleDrawerOpen("bottomOpen")(false);
+      TOOLSBAR = TOOLS_BAR.children[0].children[0],
+      TOOLSBARSETTING = TOOLS_BAR_SETTING.children[0].children[0];
+    if (i === 1) {
+      console.log(leftOpen, bottomOpen, bottomOpenSetting, CATALOG.offsetLeft + CATALOG.offsetWidth + 10, e.clientX, TOOLSBAR.offsetTop - TOOLSBAR.offsetHeight - 10, e.clientY);
+      if (leftOpen && CATALOG.offsetLeft + CATALOG.offsetWidth + 10 <= e.clientX) {
+        this.handleDrawerOpen("leftOpen")(false);
+      } else if (bottomOpenSetting && TOOLSBARSETTING.offsetTop >= e.clientY) {
+        this.handleDrawerOpen("bottomOpenSetting")(false);
+      }
+    } else {
+      if (CATALOG.offsetLeft + CATALOG.offsetWidth + 10 > e.clientX && !leftOpen) {
+        // console.log("打开目录", CATALOG.offsetLeft + CATALOG.offsetWidth + 10,
+        // e.clientX); this.handleDrawerOpen("leftOpen")(true);
+      } else if (!bottomOpen && !bottomOpenSetting && !leftOpen && TOOLSBAR.offsetTop - 10 < e.clientY) {
+        // console.log("打开工具栏", TOOLSBAR.offsetTop - 10, e.clientY);
+        this.handleDrawerOpen("bottomOpen")(true);
+      } else if (bottomOpen && TOOLSBAR.offsetTop - 10 >= e.clientY) {
+        // console.log("关闭工具栏", TOOLSBAR.offsetTop - 10, e.clientY);
+        this.handleDrawerOpen("bottomOpen")(false);
+      }
     }
+
   }
 
   handleDirOpen = () => {
     this.handleDrawerOpen("bottomOpen")(false);
     this.handleDrawerOpen("leftOpen")(true);
+  }
+
+  handleToolsBarOpen = () => {
+    this.handleDrawerOpen("bottomOpen")(false);
+    this.handleDrawerOpen("bottomOpenSetting")(true);
   }
 
   setSearchLabel = (element, label, index) => {
@@ -189,8 +206,8 @@ class Content extends Component {
   }
 
   render() {
-    const {classes} = this.props, {leftOpen, bottomOpen, fileData, fileIndex} = this.state;
-    console.log(leftOpen, bottomOpen);
+    const {classes} = this.props, {leftOpen, bottomOpen, bottomOpenSetting, fileData, fileIndex} = this.state;
+    console.log(leftOpen, bottomOpen, bottomOpenSetting);
 
     return (
       <div
@@ -276,6 +293,9 @@ class Content extends Component {
                   }}>
                     语音
                   </Button>
+                  <Button color="primary" onClick={this.handleToolsBarOpen}>
+                    设置
+                  </Button>
                   <Button color="primary" onClick={this.handleClickFile}>
                     刷新
                   </Button>
@@ -296,6 +316,29 @@ class Content extends Component {
                       .close()
                   }}>
                     退出阅读
+                  </Button>
+                </ListItem>
+              </List>
+            </div>
+          </Drawer>
+        </div>
+        <div className="toolsBar" ref={this.handleInputRef("TOOLS_BAR_SETTING")}>
+          <Drawer
+            anchor="bottom"
+            open={bottomOpenSetting}
+            className={classes.toolsBarPaper}
+            handleDrawerOpen={this.handleDrawerOpen("bottomOpenSetting")}>
+            <div>
+              <List>
+                <ListItem className={classes.toolsBarListItem}>
+                  <Button color="primary" onClick={this.handleClickFile}>
+                    设置
+                  </Button>
+                </ListItem>
+                <Divider/>
+                <ListItem className={classes.toolsBarListItem}>
+                  <Button color="primary" onClick={this.handleClickFile}>
+                    设置
                   </Button>
                 </ListItem>
               </List>

@@ -1,3 +1,7 @@
+/**
+ * @author zakary
+ * @description App
+ */
 import React, {Component} from 'react';
 import {HashRouter as Router, Route} from 'react-router-dom';
 import DevTools from 'mobx-react-devtools'; // 测试使用的mobx管理工具

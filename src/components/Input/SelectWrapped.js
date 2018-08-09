@@ -3,7 +3,7 @@ import Select from 'react-select';
 // import {withStyles} from '@material-ui/core/styles';
 import Chip from '@material-ui/core/Chip';
 import Typography from '@material-ui/core/Typography';
-import Menu from '@material-ui/core/Menu';
+// import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
