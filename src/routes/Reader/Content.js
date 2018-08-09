@@ -1,6 +1,10 @@
 /**
  * @author zakary
  * @description 内容页
+ * 开发纪要：
+ * 添加字体、字号、字色、背景选择功能
+ * 添加护眼模式、夜间模式、淡蓝、淡绿、淡粉、淡紫、牛皮纸、白瓷砖、大理石、纸张模式
+ * 添加宽视距、中等视距、窄视距模式
  */
 
 import React, {Component} from 'react';
@@ -11,6 +15,7 @@ import Divider from '@material-ui/core/Divider';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
+import ColorPicker from '@mapbox/react-colorpickr';
 
 import Drawer from "../../components/Drawer";
 import Stepper from "../../components/Stepper";
@@ -41,7 +46,10 @@ class Content extends Component {
       fileIndex: 0,
       leftOpen: leftDrawer.open,
       bottomOpen: bottomDrawer.open,
-      bottomOpenSetting: bottomDrawerTools.open
+      bottomOpenSetting: bottomDrawerTools.open,
+      pageStyles: {
+        color: "#000000"
+      }
     };
     const setState = (name, data, s = () => {}) => {
         this.setState({
@@ -206,7 +214,14 @@ class Content extends Component {
   }
 
   render() {
-    const {classes} = this.props, {leftOpen, bottomOpen, bottomOpenSetting, fileData, fileIndex} = this.state;
+    const {classes} = this.props, {
+        leftOpen,
+        bottomOpen,
+        bottomOpenSetting,
+        fileData,
+        fileIndex,
+        pageStyles
+      } = this.state;
     console.log(leftOpen, bottomOpen, bottomOpenSetting);
 
     return (
@@ -218,8 +233,16 @@ class Content extends Component {
         onMouseOut={this.handleMouseMove(0)}
         onMouseOver={this.handleMouseMove(0)}
         ref={this.handleInputRef("CONTENT")}>
-        <div className={classes.bookContent} ref={this.handleInputRef("BOOK_CONTENT")}>
-          {this.setSearchLabel((fileData[fileIndex] || "").replace(R.multiline, "\n").replace(R.emptyEnd, "").toString(), "", fileIndex)}
+        <div
+          className={classes.bookContent}
+          style={{
+          backgroundImage: pageStyles.backgroundImage,
+          backgroundColor: pageStyles.backgroundColor || "#FFFFFF",
+          color: pageStyles.color || "#000000",
+          fontSize: `${pageStyles.fontSize || 16}px`
+        }}
+          ref={this.handleInputRef("BOOK_CONTENT")}>
+          {(fileData[fileIndex] || "").split(R.newline).map((e, i) => this.setSearchLabel(e.toString(), "", i))}
         </div>
         <div className="bookCatalog" ref={this.handleInputRef("BOOK_CATALOG")}>
           <Drawer
@@ -334,6 +357,10 @@ class Content extends Component {
                   <Button color="primary" onClick={this.handleClickFile}>
                     设置
                   </Button>
+                  <ColorPicker
+                    onChange={color => {
+                    console.log(color);
+                  }}/>
                 </ListItem>
                 <Divider/>
                 <ListItem className={classes.toolsBarListItem}>
