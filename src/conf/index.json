@@ -5,10 +5,12 @@
     "width": 1080,
     "height": 840,
     "frame": true,
+    "transparent": false,
     "fullscreen": false
   },
   "readerWindowOptions": {
-    "frame": true,
+    "frame": false,
+    "transparent": false,
     "fullscreen": true
   }
 }

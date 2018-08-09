@@ -21,7 +21,7 @@ const fs = window.require("fs"),
   electron = window.require("electron"),
   remote = electron.remote;
 const ipc = electron.ipcRenderer;
-const {BrowserWindow} = remote;
+const {BrowserWindow, Menu} = remote;
 const {readerWindowOptions} = __conf;
 
 class Content extends Component {
@@ -66,6 +66,7 @@ class Content extends Component {
         });
       }
     });
+    this.reader = null;
   }
 
   handleChange = name => (value) => {
@@ -205,40 +206,48 @@ class Content extends Component {
   };
 
   handleReadMode = () => {
-    const {file, fileInput} = this.state,
-      clickHandler = () => {
-        win.focus()
+    const clearReader = () => {
+        this.reader = null;
       },
-      showFocusBtn = (btn) => {
-        if (!win) 
-          return
-          // focusModalBtn.addEventListener('click', clickHandler)
-        },
-      hideFocusBtn = () => {
-        // focusModalBtn.removeEventListener('click', clickHandler)
+      getFile = () => {
+        const {file, fileInput} = this.state;
+        if (!file) {
+          snack.setMessage("请先选择文件!");
+          fileInput.focus();
+          return;
+        }
+        return file;
       };
-    if (!file) {
-      snack.setMessage("请先选择文件!");
-      fileInput.focus();
+    if (!getFile()) 
       return;
+    
+    // Menu.setApplicationMenu(null);
+    let win = this.reader;
+    if (!win) {
+      win = new BrowserWindow({
+        ...readerWindowOptions
+      });
+      this.reader = win;
+      win.on('close', () => {
+        win = null;
+        clearReader();
+      });
+      win.on('focus', () => {
+        win
+          .webContents
+          .send('Reader-Path-Send', getFile());
+      });
+      win.loadURL(window.location.href.replace(R.InternetURLHref, "#/Reader"));
+      win.show();
+    } else {
+      win.focus();
     }
-    let win = new BrowserWindow({
-      ...readerWindowOptions
-    });
-    win.on('focus', hideFocusBtn);
-    win.on('blur', showFocusBtn);
-    win.on('close', () => {
-      hideFocusBtn();
-      win = null;
-    });
-    win.loadURL(window.location.href.replace(R.InternetURLHref, "#/Reader"));
-    win.show();
     win
       .webContents
       .on('did-finish-load', () => {
         win
           .webContents
-          .send('Reader-Path-Send', file);
+          .send('Reader-Path-Send', getFile());
       });
   }
 

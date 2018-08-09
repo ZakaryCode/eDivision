@@ -42,15 +42,26 @@ class Content extends Component {
       bottomOpen: bottomDrawer.open
     };
     const setState = (name, data, s = () => {}) => {
-      this.setState({
-        [name]: data
-      }, s);
-    };
+        this.setState({
+          [name]: data
+        }, s);
+      },
+      getFile = (file) => {
+        console.log(!this.state.file, this.state.file !== file, this.state.file, file)
+        if (!this.state.file) {
+          return 2;
+        }
+        if (this.state.file !== file) {
+          return 1;
+        }
+        return 0;
+      };
     ipc.on('Reader-Path-Send', (event, data) => {
-      setTimeout(() => {
-        console.log("Reader-Path-Send", data);
+      const i = getFile(data);
+      console.log("Reader-Path-Send", i, data);
+      if (i === 2 || i === 1 && window.confirm("是否重载阅读器？")) {
         setState("file", data, this.handleClickFile);
-      }, 500);
+      }
     });
   }
 
@@ -264,6 +275,9 @@ class Content extends Component {
                     });
                   }}>
                     语音
+                  </Button>
+                  <Button color="primary" onClick={this.handleClickFile}>
+                    刷新
                   </Button>
                   <Button
                     color="primary"
