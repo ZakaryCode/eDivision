@@ -359,7 +359,15 @@ class Content extends Component {
                     title={e.title}
                     url={e.url}
                     backgroundColor={e.backgroundColor}
-                    isClicked={true}/>))}
+                    color={e.color}
+                    isClicked={true}
+                    onClick={() => {
+                    let pageStyles = this.state.pageStyles;
+                    pageStyles.backgroundColor = e.backgroundColor;
+                    pageStyles.backgroundImage = `url(${e.url})`;
+                    pageStyles.color = e.color;
+                    this.setState({pageStyles});
+                  }}/>))}
                 </ListItem>
                 <Divider/>
                 <ListItem className={classes.toolsBarListItem}>
@@ -386,7 +394,8 @@ const styles = (theme) => ({
     height: "100vh"
   },
   bookContent: {
-    padding: theme.spacing.unit * 3
+    padding: theme.spacing.unit * 3,
+    height: "100%"
   },
   drawerPaper: {
     width: app.drawerWidth,

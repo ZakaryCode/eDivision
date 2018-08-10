@@ -76,11 +76,21 @@ class Content extends Component {
     classes: PropTypes.object.isRequired,
     title: PropTypes.string.isRequired,
     url: PropTypes.string.isRequired,
+    backgroundColor: PropTypes.string.isRequired,
+    color: PropTypes.string.isRequired,
     isClicked: PropTypes.bool.isRequired
   };
 
   render() {
-    const {classes, title, url, backgroundColor, isClicked} = this.props;
+    const {
+      classes,
+      title,
+      url,
+      backgroundColor,
+      color,
+      isClicked,
+      onClick
+    } = this.props;
 
     return (
       <ButtonBase
@@ -93,7 +103,7 @@ class Content extends Component {
         width: 72,
         height: 72,
         margin: 10
-      }}>
+      }}onClick={onClick}>
         <Avatar
           alt={title}
           src={url}
@@ -113,7 +123,10 @@ class Content extends Component {
             component="span"
             variant="subheading"
             color="inherit"
-            className={classes.imageTitle}>
+            className={classes.imageTitle}
+            style={{
+            color: color
+          }}>
             {title}
           </Typography>
         </span>
@@ -129,42 +142,46 @@ export const images = [
   {
     url: 'https://raw.githubusercontent.com/mui-org/material-ui/master/static/images/grid-' +
         'list/breakfast.jpg',
-    title: '纸张'
+    title: '纸张',
+    color: ''
   }, {
     url: 'https://raw.githubusercontent.com/mui-org/material-ui/master/static/images/grid-' +
         'list/burgers.jpg',
-    title: '大理石'
+    title: '大理石',
+    color: ''
   }, {
     url: 'https://raw.githubusercontent.com/mui-org/material-ui/master/static/images/grid-' +
         'list/camera.jpg',
-    title: '白瓷砖'
+    title: '白瓷砖',
+    color: ''
   }, {
     url: 'https://raw.githubusercontent.com/mui-org/material-ui/master/static/images/grid-' +
         'list/camera.jpg',
-    title: '牛皮纸'
+    title: '牛皮纸',
+    color: ''
   }, {
-    url: 'https://raw.githubusercontent.com/mui-org/material-ui/master/static/images/grid-' +
-        'list/camera.jpg',
-    title: '护眼'
+    title: '护眼',
+    backgroundColor: '#66CC99',
+    color: '#2E8A5C'
   }, {
-    url: 'https://raw.githubusercontent.com/mui-org/material-ui/master/static/images/grid-' +
-        'list/camera.jpg',
-    title: '夜间'
+    title: '夜间',
+    backgroundColor: '#242424',
+    color: '#000000'
   }, {
-    url: '',
     title: '淡蓝',
-    backgroundColor: '#80CCFF'
+    backgroundColor: '#80CCFF',
+    color: '#0065A8'
   }, {
-    url: '',
     title: '淡绿',
-    backgroundColor: '#66CC99'
+    backgroundColor: '#66CC99',
+    color: '#2E8A5C'
   }, {
-    url: '',
     title: '淡粉',
-    backgroundColor: '#FFCCE6'
+    backgroundColor: '#FFCCE6',
+    color: '#FF42A4'
   }, {
-    url: '',
     title: '淡紫',
-    backgroundColor: '#FECCFF'
+    backgroundColor: '#FECCFF',
+    color: '#8F91FF'
   }
 ];
