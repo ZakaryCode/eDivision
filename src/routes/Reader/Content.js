@@ -27,6 +27,8 @@ import app from '../../store/app';
 import * as R from "../../conf/RegExp";
 import * as utils from "../../utils";
 import AvatarButton, {images} from "./Avatar";
+import SliderButton from "./Slider";
+import MenuButton from "./MenuList";
 
 const fs = window.require('fs'),
   // _path_ = window.require('path'),
@@ -49,7 +51,9 @@ class Content extends Component {
       bottomOpen: bottomDrawer.open,
       bottomOpenSetting: bottomDrawerTools.open,
       pageStyles: {
-        color: "#000000"
+        color: "#000000",
+        fontSize: 16,
+        fontFamily: "Arial,Verdana,Sans-serif"
       }
     };
     const setState = (name, data, s = () => {}) => {
@@ -240,7 +244,8 @@ class Content extends Component {
           backgroundImage: pageStyles.backgroundImage,
           backgroundColor: pageStyles.backgroundColor || "#FFFFFF",
           color: pageStyles.color || "#000000",
-          fontSize: `${pageStyles.fontSize || 16}px`
+          fontSize: `${pageStyles.fontSize || 16}px`,
+          fontFamily: pageStyles.fontFamily
         }}
           ref={this.handleInputRef("BOOK_CONTENT")}>
           {(fileData[fileIndex] || "").split(R.newline).map((e, i) => this.setSearchLabel(e.toString(), "", i))}
@@ -273,7 +278,7 @@ class Content extends Component {
             </div>
           </Drawer>
         </div>
-        <div className="toolsBar" ref={this.handleInputRef("TOOLS_BAR")}>
+        <div className={classes.toolsBar} ref={this.handleInputRef("TOOLS_BAR")}>
           <Drawer
             anchor="bottom"
             open={bottomOpen}
@@ -346,7 +351,9 @@ class Content extends Component {
             </div>
           </Drawer>
         </div>
-        <div className="toolsBar" ref={this.handleInputRef("TOOLS_BAR_SETTING")}>
+        <div
+          className={classes.toolsBar}
+          ref={this.handleInputRef("TOOLS_BAR_SETTING")}>
           <Drawer
             anchor="bottom"
             open={bottomOpenSetting}
@@ -370,14 +377,29 @@ class Content extends Component {
                   }}/>))}
                 </ListItem>
                 <Divider/>
-                <ListItem className={classes.toolsBarListItem}>
-                  <Button
-                    color="primary"
-                    onClick={this.handleClickFile}
-                    variant="fab"
-                    className={classes.button}>
-                    设置
-                  </Button>
+                <ListItem
+                  className={classes.toolsBarListItem}
+                  style={{
+                  display: "flex"
+                }}>
+                  <MenuButton
+                    name={`字体 ${this.state.pageStyles.fontFamily}`}
+                    value={this.state.pageStyles.fontFamily}
+                    handleSwitch={(value) => {
+                    let pageStyles = this.state.pageStyles;
+                    pageStyles.fontFamily = value;
+                    this.setState({pageStyles});
+                  }}/>
+                  <SliderButton
+                    name={`字号 ${this.state.pageStyles.fontSize}`}
+                    min={12}
+                    max={128}
+                    value={this.state.pageStyles.fontSize}
+                    handleSwitch={(event, value) => {
+                    let pageStyles = this.state.pageStyles;
+                    pageStyles.fontSize = value;
+                    this.setState({pageStyles});
+                  }}/>
                 </ListItem>
               </List>
             </div>
@@ -395,13 +417,16 @@ const styles = (theme) => ({
   },
   bookContent: {
     padding: theme.spacing.unit * 3,
-    height: "100%"
+    height: `calc(100% - ${theme.spacing.unit * 6}px)`
   },
   drawerPaper: {
     width: app.drawerWidth,
-    height: `calc(100%-${app.headerHeight})`,
+    height: `calc(100% - ${app.headerHeight}px)`,
     top: app.headerHeight,
     borderWidth: 0
+  },
+  toolsBar: {
+    // overflowY: "visible"
   },
   toolsBarPaper: {
     width: "50%",

@@ -36,7 +36,7 @@ import './Drawer.css';
   };
 
   render() {
-    const {className, anchor, open, children} = this.props;
+    const {classes, className, anchor, open, children} = this.props;
 
     let isThereDrawer = (
       <Drawer
@@ -49,12 +49,19 @@ import './Drawer.css';
           ? "visible"
           : "hidden"
       }}
-        className={className}>{children}</Drawer>
+        className={className}
+        classes={{
+        paper: classes.paperStyle
+      }}>{children}</Drawer>
     );
     return (isThereDrawer);
   }
 }
 
-const styles = (theme) => ({});
+const styles = (theme) => ({
+  paperStyle: {
+    overflowY: "visible"
+  }
+});
 
 export default withStyles(styles)(Content);
