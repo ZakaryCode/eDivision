@@ -26,6 +26,7 @@ import bottomDrawerTools from '../../store/bottomDrawerTools';
 import app from '../../store/app';
 import * as R from "../../conf/RegExp";
 import * as utils from "../../utils";
+import AvatarButton, {images} from "./Avatar";
 
 const fs = window.require('fs'),
   // _path_ = window.require('path'),
@@ -354,17 +355,19 @@ class Content extends Component {
             <div>
               <List>
                 <ListItem className={classes.toolsBarListItem}>
-                  <Button color="primary" onClick={this.handleClickFile}>
-                    设置
-                  </Button>
-                  <ColorPicker
-                    onChange={color => {
-                    console.log(color);
-                  }}/>
+                  {images.map(e => (<AvatarButton
+                    title={e.title}
+                    url={e.url}
+                    backgroundColor={e.backgroundColor}
+                    isClicked={true}/>))}
                 </ListItem>
                 <Divider/>
                 <ListItem className={classes.toolsBarListItem}>
-                  <Button color="primary" onClick={this.handleClickFile}>
+                  <Button
+                    color="primary"
+                    onClick={this.handleClickFile}
+                    variant="fab"
+                    className={classes.button}>
                     设置
                   </Button>
                 </ListItem>
@@ -399,7 +402,16 @@ const styles = (theme) => ({
   },
   toolsBarListItem: {
     textAlign: "center",
-    display: "block"
+    display: "inline-block"
+  },
+  button: {
+    margin: theme.spacing.unit,
+    backgroundColor: "rgba(0, 0, 0, 0)"
+  },
+  avatar: {
+    // margin: 10
+    width: 56,
+    height: 56
   }
 })
 
