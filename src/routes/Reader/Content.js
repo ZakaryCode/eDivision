@@ -31,7 +31,7 @@ import SliderButton from "./Slider";
 import MenuButton from "./MenuList";
 
 const fs = window.require('fs'),
-  // _path_ = window.require('path'),
+  _path_ = window.require('path'),
   electron = window.require("electron"),
   remote = electron.remote;
 const ipc = electron.ipcRenderer;
@@ -75,6 +75,12 @@ class Content extends Component {
       const i = getFile(data);
       console.log("Reader-Path-Send", i, data);
       if (i === 2 || (i === 1 && window.confirm("是否重载阅读器？"))) {
+        const title = "阅读: " + _path_
+          .basename(data)
+          .split(".")[0];
+        remote
+          .getCurrentWindow()
+          .setTitle(title)
         setState("file", data, this.handleClickFile);
       }
     });
