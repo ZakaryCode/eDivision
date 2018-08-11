@@ -31,7 +31,8 @@ class Content extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      file: "D:\\NutstoreSave\\电纸书\\数据眼\\数据眼.txt",
+      // file: "D:\\NutstoreSave\\电纸书\\数据眼\\数据眼.txt",
+      file: "E:\\NutsCloudSave\\电纸书\\数据眼\\数据眼.txt",
       fileData: "",
       division: "------------",
       divisionD: "------------",
