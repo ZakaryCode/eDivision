@@ -47,14 +47,17 @@ class Content extends Component {
       divisionD: "------------",
       fileData: [],
       fileIndex: 0,
+      pageIndex: 0,
       leftOpen: leftDrawer.open,
       bottomOpen: bottomDrawer.open,
       bottomOpenSetting: bottomDrawerTools.open,
       pageStyles: {
         color: "#000000",
         fontSize: 16,
-        fontFamily: "Arial,Verdana,Sans-serif"
-      }
+        fontFamily: "Arial,Verdana,Sans-serif",
+        verticalSpacing: 1
+      },
+      CONTENT: {}
     };
     const setState = (name, data, s = () => {}) => {
         this.setState({
@@ -75,7 +78,7 @@ class Content extends Component {
       const i = getFile(data);
       console.log("Reader-Path-Send", i, data);
       if (i === 2 || (i === 1 && window.confirm("是否重载阅读器？"))) {
-        const title = "阅读: " + _path_
+        const title = "阅读器: " + _path_
           .basename(data)
           .split(".")[0];
         remote
@@ -83,6 +86,26 @@ class Content extends Component {
           .setTitle(title)
         setState("file", data, this.handleClickFile);
       }
+    });
+
+    document.addEventListener('keyup', (e) => {
+      let pageIndex = this.state.pageIndex,
+        pageHeight = this.countLines();
+      switch (Number(e.keyCode)) {
+        case 37:
+          pageIndex -= pageHeight;
+          setState("pageIndex", pageIndex >= 0
+            ? pageIndex
+            : 0);
+          break;
+        case 39:
+          pageIndex += pageHeight;
+          setState("pageIndex", pageIndex);
+          break;
+        default:
+          break;
+      }
+      console.log("pageIndex", this, pageIndex);
     });
   }
 
@@ -129,7 +152,7 @@ class Content extends Component {
   };
 
   handleMouseMove = i => e => {
-    const {BOOK_CATALOG, TOOLS_BAR, TOOLS_BAR_SETTING} = this, {leftOpen, bottomOpen, bottomOpenSetting} = this.state,
+    const {BOOK_CATALOG, TOOLS_BAR, TOOLS_BAR_SETTING} = this.state.CONTENT, {leftOpen, bottomOpen, bottomOpenSetting} = this.state,
       CATALOG = BOOK_CATALOG.children[0].children[0],
       TOOLSBAR = TOOLS_BAR.children[0].children[0],
       TOOLSBARSETTING = TOOLS_BAR_SETTING.children[0].children[0];
@@ -165,7 +188,7 @@ class Content extends Component {
     this.handleDrawerOpen("bottomOpenSetting")(true);
   }
 
-  setSearchLabel = (element, label, index) => {
+  setSearchLabel = (element, label, index, height) => {
     let spanLabel = () => {
       element = element.split(label);
       if (!element.length) 
@@ -193,15 +216,21 @@ class Content extends Component {
         webkitMarginAfter: 0
       }}>{label
           ? spanLabel(element, label, index)
-          : <span>{element}</span>}</p>;
+          : <span>{element
+              ? element
+              : <br/>}</span>}</p>;
     return null;
   }
 
   handleInputRef = name => node => {
-    if (node) {
-      // console.log(name, node, node.offsetLeft, node.offsetWidth, node.offsetTop,
-      // node.offsetHeight);
-      this[name] = node;
+    if (node && this.state.CONTENT[name] !== node) {
+      let CONTENT = this.state.CONTENT;
+      CONTENT[name] = node;
+      this.setState({
+        CONTENT
+      }, () => {
+        console.log("handleInputRef", name)
+      });
     }
   }
 
@@ -221,7 +250,20 @@ class Content extends Component {
       snack.setMessage("已经是第一章了!");
       return;
     }
-    this.setState({fileIndex: i});
+    this.setState({fileIndex: i, pageIndex: 0});
+  }
+
+  countLines = () => {
+    const {pageStyles} = this.state;
+    const {CONTENT} = this.state.CONTENT;
+    if (!CONTENT) {
+      return;
+    }
+    let lh = parseInt((pageStyles.fontSize || 16) + (pageStyles.verticalSpacing || 1), 10),
+      h = parseInt(CONTENT.offsetHeight - 24 * 2, 10),
+      lc = parseInt(h / lh, 10);
+    console.log('line count:', lc, 'line-height:', lh, 'height:', h);
+    return lc * lh - (pageStyles.verticalSpacing || 1);
   }
 
   render() {
@@ -234,196 +276,226 @@ class Content extends Component {
         pageStyles
       } = this.state;
     console.log(leftOpen, bottomOpen, bottomOpenSetting);
+    const BOOK_CONTENT_HEIGHT = this.countLines(),
+      BookContentDiv = (h) => {
+        const {BOOK_CONTENT} = this.state.CONTENT;
+        if (!BOOK_CONTENT) {
+          return;
+        }
+        const width = BOOK_CONTENT.offsetWidth,
+          height = BOOK_CONTENT.offsetHeight,
+          p = (fileData[fileIndex] || "").split(R.newline);
+        BOOK_CONTENT.scrollTop = this.state.pageIndex;
+        return p.map((e, i) => this.setSearchLabel(e.toString(), "", i, h));
+      }
 
-    return (
-      <div
-        className={classes.content}
-        onClick={this.handleMouseMove(1)}
-        onMouseLeave={this.handleMouseMove(0)}
-        onMouseMove={this.handleMouseMove(0)}
-        onMouseOut={this.handleMouseMove(0)}
-        onMouseOver={this.handleMouseMove(0)}
-        ref={this.handleInputRef("CONTENT")}>
+      return (
         <div
-          className={classes.bookContent}
-          style={{
-          backgroundImage: pageStyles.backgroundImage,
-          backgroundColor: pageStyles.backgroundColor || "#FFFFFF",
-          color: pageStyles.color || "#000000",
-          fontSize: `${pageStyles.fontSize || 16}px`,
-          fontFamily: pageStyles.fontFamily
-        }}
-          ref={this.handleInputRef("BOOK_CONTENT")}>
-          {(fileData[fileIndex] || "").split(R.newline).map((e, i) => this.setSearchLabel(e.toString(), "", i))}
-        </div>
-        <div className="bookCatalog" ref={this.handleInputRef("BOOK_CATALOG")}>
-          <Drawer
-            anchor="left"
-            open={leftOpen}
-            className={classes.drawerPaper}
-            handleDrawerOpen={this.handleDrawerOpen("leftOpen")}>
-            <div>
-              <List>
-                {fileData.map((e, i) => {
-                  const p = e.split(R.newline);
-                  for (let index = 0; index < p.length; index++) {
-                    const element = p[index];
-                    if (element) {
-                      return <ListItem
-                        button
-                        onClick={() => {
-                        this.handleSwitchPage(2)(i);
-                        this.handleDrawerOpen("leftOpen")(false);
-                      }}>
-                        <ListItemText primary={element}/>
-                      </ListItem>
+          className={classes.content}
+          onClick={this.handleMouseMove(1)}
+          onMouseLeave={this.handleMouseMove(0)}
+          onMouseMove={this.handleMouseMove(0)}
+          onMouseOut={this.handleMouseMove(0)}
+          onMouseOver={this.handleMouseMove(0)}
+          ref={this.handleInputRef("CONTENT")}>
+          <div
+            id="BOOK_CONTENT"
+            className={classes.bookContent}
+            style={{
+            backgroundImage: pageStyles.backgroundImage,
+            backgroundColor: pageStyles.backgroundColor || "#FFFFFF",
+            color: pageStyles.color || "#000000",
+            fontSize: `${pageStyles.fontSize || 16}px`,
+            lineHeight: `${ (pageStyles.fontSize || 16) + (pageStyles.verticalSpacing || 1)}px`,
+            fontFamily: pageStyles.fontFamily,
+            height: BOOK_CONTENT_HEIGHT
+          }}
+            ref={this.handleInputRef("BOOK_CONTENT")}>
+            <div id="BOOK_CONTENT_INNER" ref={this.handleInputRef("BOOK_CONTENT_INNER")}>
+              {BookContentDiv(BOOK_CONTENT_HEIGHT)}
+            </div>
+          </div>
+          <div className="bookCatalog" ref={this.handleInputRef("BOOK_CATALOG")}>
+            <Drawer
+              anchor="left"
+              open={leftOpen}
+              className={classes.drawerPaper}
+              handleDrawerOpen={this.handleDrawerOpen("leftOpen")}>
+              <div>
+                <List>
+                  {fileData.map((e, i) => {
+                    const p = e.split(R.newline);
+                    for (let index = 0; index < p.length; index++) {
+                      const element = p[index];
+                      if (element) {
+                        return <ListItem
+                          button
+                          onClick={() => {
+                          this.handleSwitchPage(2)(i);
+                          this.handleDrawerOpen("leftOpen")(false);
+                        }}>
+                          <ListItemText primary={element}/>
+                        </ListItem>
+                      }
                     }
-                  }
-                })}
-              </List>
-            </div>
-          </Drawer>
-        </div>
-        <div className={classes.toolsBar} ref={this.handleInputRef("TOOLS_BAR")}>
-          <Drawer
-            anchor="bottom"
-            open={bottomOpen}
-            className={classes.toolsBarPaper}
-            handleDrawerOpen={this.handleDrawerOpen("bottomOpen")}>
-            <div>
-              <List>
-                <ListItem className={classes.toolsBarListItem}>
-                  <Stepper
-                    start={0}
-                    count={this.state.fileData.length}
-                    steps={fileIndex}
-                    onSwitch={this.handleSwitchPage}/>
-                </ListItem>
-                <Divider/>
-                <ListItem className={classes.toolsBarListItem}>
-                  <Button color="primary" onClick={this.handleDirOpen}>
-                    目录
-                  </Button>
-                  <Button
-                    color="primary"
-                    onClick={() => {
-                    fetch("http://api.xfyun.cn/v1/service/v1/tts", {
-                      method: "post",
-                      headers: new Headers({"Content-Type": "application/x-www-form-urlencoded; charset=utf-8"}),
-                      data: utils.json2Form({
-                        "auf": "audio/L16;rate=16000",
-                        "aue": "raw",
-                        "voice_name": "xiaoyan",
-                        "speed": "50",
-                        "volume": "50",
-                        "pitch": "50",
-                        "engine_type": "intp65",
-                        "text_type": "text"
-                      })
-                    }).then((res) => {
-                      console.log(res)
-                    }).catch((err) => {
-                      console.log(err)
-                    });
+                  })}
+                </List>
+              </div>
+            </Drawer>
+          </div>
+          <div className={classes.toolsBar} ref={this.handleInputRef("TOOLS_BAR")}>
+            <Drawer
+              anchor="bottom"
+              open={bottomOpen}
+              className={classes.toolsBarPaper}
+              handleDrawerOpen={this.handleDrawerOpen("bottomOpen")}>
+              <div>
+                <List>
+                  <ListItem className={classes.toolsBarListItem}>
+                    <Stepper
+                      start={0}
+                      count={this.state.fileData.length}
+                      steps={fileIndex}
+                      onSwitch={this.handleSwitchPage}/>
+                  </ListItem>
+                  <Divider/>
+                  <ListItem className={classes.toolsBarListItem}>
+                    <Button color="primary" onClick={this.handleDirOpen}>
+                      目录
+                    </Button>
+                    <Button
+                      color="primary"
+                      onClick={() => {
+                      fetch("http://api.xfyun.cn/v1/service/v1/tts", {
+                        method: "post",
+                        headers: new Headers({"Content-Type": "application/x-www-form-urlencoded; charset=utf-8"}),
+                        data: utils.json2Form({
+                          "auf": "audio/L16;rate=16000",
+                          "aue": "raw",
+                          "voice_name": "xiaoyan",
+                          "speed": "50",
+                          "volume": "50",
+                          "pitch": "50",
+                          "engine_type": "intp65",
+                          "text_type": "text"
+                        })
+                      }).then((res) => {
+                        console.log(res)
+                      }).catch((err) => {
+                        console.log(err)
+                      });
+                    }}>
+                      语音
+                    </Button>
+                    <Button color="primary" onClick={this.handleToolsBarOpen}>
+                      设置
+                    </Button>
+                    <Button color="primary" onClick={this.handleClickFile}>
+                      刷新
+                    </Button>
+                    <Button
+                      color="primary"
+                      onClick={() => {
+                      remote
+                        .getCurrentWindow()
+                        .minimize()
+                    }}>
+                      最小化
+                    </Button>
+                    <Button
+                      color="primary"
+                      onClick={() => {
+                      remote
+                        .getCurrentWindow()
+                        .close()
+                    }}>
+                      退出阅读
+                    </Button>
+                  </ListItem>
+                </List>
+              </div>
+            </Drawer>
+          </div>
+          <div
+            className={classes.toolsBar}
+            ref={this.handleInputRef("TOOLS_BAR_SETTING")}>
+            <Drawer
+              anchor="bottom"
+              open={bottomOpenSetting}
+              className={classes.toolsBarPaper}
+              handleDrawerOpen={this.handleDrawerOpen("bottomOpenSetting")}>
+              <div>
+                <List>
+                  <ListItem className={classes.toolsBarListItem}>
+                    {images.map(e => (<AvatarButton
+                      title={e.title}
+                      url={e.url}
+                      backgroundColor={e.backgroundColor}
+                      color={e.color}
+                      isClicked={true}
+                      onClick={() => {
+                      let pageStyles = this.state.pageStyles;
+                      pageStyles.backgroundColor = e.backgroundColor;
+                      pageStyles.backgroundImage = `url(${e.url})`;
+                      pageStyles.color = e.color;
+                      this.setState({pageStyles});
+                    }}/>))}
+                  </ListItem>
+                  <Divider/>
+                  <ListItem
+                    className={classes.toolsBarListItem}
+                    style={{
+                    display: "flex"
                   }}>
-                    语音
-                  </Button>
-                  <Button color="primary" onClick={this.handleToolsBarOpen}>
-                    设置
-                  </Button>
-                  <Button color="primary" onClick={this.handleClickFile}>
-                    刷新
-                  </Button>
-                  <Button
-                    color="primary"
-                    onClick={() => {
-                    remote
-                      .getCurrentWindow()
-                      .minimize()
-                  }}>
-                    最小化
-                  </Button>
-                  <Button
-                    color="primary"
-                    onClick={() => {
-                    remote
-                      .getCurrentWindow()
-                      .close()
-                  }}>
-                    退出阅读
-                  </Button>
-                </ListItem>
-              </List>
-            </div>
-          </Drawer>
+                    <MenuButton
+                      name={`字体 ${this.state.pageStyles.fontFamily}`}
+                      value={this.state.pageStyles.fontFamily}
+                      handleSwitch={(value) => {
+                      let pageStyles = this.state.pageStyles;
+                      pageStyles.fontFamily = value;
+                      this.setState({pageStyles});
+                    }}/>
+                    <SliderButton
+                      name={`字号 ${this.state.pageStyles.fontSize}`}
+                      min={12}
+                      max={128}
+                      value={this.state.pageStyles.fontSize}
+                      handleSwitch={(event, value) => {
+                      let pageStyles = this.state.pageStyles;
+                      pageStyles.fontSize = value;
+                      this.setState({pageStyles});
+                    }}/>
+                    <SliderButton
+                      name={`行间距 ${this.state.pageStyles.verticalSpacing}`}
+                      min={1}
+                      max={128}
+                      value={this.state.pageStyles.verticalSpacing}
+                      handleSwitch={(event, value) => {
+                      let pageStyles = this.state.pageStyles;
+                      pageStyles.verticalSpacing = value;
+                      this.setState({pageStyles});
+                    }}/>
+                  </ListItem>
+                </List>
+              </div>
+            </Drawer>
+          </div>
         </div>
-        <div
-          className={classes.toolsBar}
-          ref={this.handleInputRef("TOOLS_BAR_SETTING")}>
-          <Drawer
-            anchor="bottom"
-            open={bottomOpenSetting}
-            className={classes.toolsBarPaper}
-            handleDrawerOpen={this.handleDrawerOpen("bottomOpenSetting")}>
-            <div>
-              <List>
-                <ListItem className={classes.toolsBarListItem}>
-                  {images.map(e => (<AvatarButton
-                    title={e.title}
-                    url={e.url}
-                    backgroundColor={e.backgroundColor}
-                    color={e.color}
-                    isClicked={true}
-                    onClick={() => {
-                    let pageStyles = this.state.pageStyles;
-                    pageStyles.backgroundColor = e.backgroundColor;
-                    pageStyles.backgroundImage = `url(${e.url})`;
-                    pageStyles.color = e.color;
-                    this.setState({pageStyles});
-                  }}/>))}
-                </ListItem>
-                <Divider/>
-                <ListItem
-                  className={classes.toolsBarListItem}
-                  style={{
-                  display: "flex"
-                }}>
-                  <MenuButton
-                    name={`字体 ${this.state.pageStyles.fontFamily}`}
-                    value={this.state.pageStyles.fontFamily}
-                    handleSwitch={(value) => {
-                    let pageStyles = this.state.pageStyles;
-                    pageStyles.fontFamily = value;
-                    this.setState({pageStyles});
-                  }}/>
-                  <SliderButton
-                    name={`字号 ${this.state.pageStyles.fontSize}`}
-                    min={12}
-                    max={128}
-                    value={this.state.pageStyles.fontSize}
-                    handleSwitch={(event, value) => {
-                    let pageStyles = this.state.pageStyles;
-                    pageStyles.fontSize = value;
-                    this.setState({pageStyles});
-                  }}/>
-                </ListItem>
-              </List>
-            </div>
-          </Drawer>
-        </div>
-      </div>
-    );
+      );
   }
 }
 
 const styles = (theme) => ({
   content: {
     width: "100%",
-    height: "100vh"
+    height: "100vh",
+    overflow: "hidden"
   },
   bookContent: {
-    padding: theme.spacing.unit * 3,
-    height: `calc(100% - ${theme.spacing.unit * 6}px)`
+    margin: theme.spacing.unit * 3,
+    height: `calc(100% - ${theme.spacing.unit * 6}px)`,
+    width: "-webkit-fill-available",
+    overflow: "hidden"
   },
   drawerPaper: {
     width: app.drawerWidth,
