@@ -36,6 +36,7 @@ const fs = window.require('fs'),
   remote = electron.remote;
 const ipc = electron.ipcRenderer;
 
+let margin;
 class Content extends Component {
   static propTypes = {
     classes: PropTypes.object.isRequired
@@ -229,7 +230,7 @@ class Content extends Component {
       this.setState({
         CONTENT
       }, () => {
-        console.log("handleInputRef", name)
+        console.log(`handleInputRef ${name}`, this.state.CONTENT[name]);
       });
     }
   }
@@ -260,47 +261,99 @@ class Content extends Component {
       return;
     }
     let lh = parseInt((pageStyles.fontSize || 16) + (pageStyles.verticalSpacing || 1), 10),
-      h = parseInt(CONTENT.offsetHeight - 24 * 2, 10),
+      h = parseInt(CONTENT.offsetHeight - margin * 2, 10),
       lc = parseInt(h / lh, 10);
     console.log('line count:', lc, 'line-height:', lh, 'height:', h);
     return lc * lh - (pageStyles.verticalSpacing || 1);
   }
 
+  countRatio = (canvas) => {
+    const ctx = canvas.getContext('2d');
+    // 屏幕的设备像素比
+    const devicePixelRatio = window.devicePixelRatio || 1;
+    // 浏览器在渲染canvas之前存储画布信息的像素比
+    const backingStoreRatio = ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1;
+    console.log("ratio", devicePixelRatio, ctx);
+    // canvas的实际渲染倍率
+    return devicePixelRatio / backingStoreRatio;
+  }
+
+  autoscale = (canvas) => {
+    const ctx = canvas.getContext('2d');
+    const ratio = this.countRatio(canvas);
+    if (1 != ratio) {
+      canvas.style.width = canvas.width + 'px';
+      canvas.style.height = canvas.height + 'px';
+      canvas.width *= ratio;
+      canvas.height *= ratio;
+      // ctx.scale(ratio, ratio);
+    }
+    return canvas;
+  }
+
   render() {
-    const {classes} = this.props, {
-        leftOpen,
-        bottomOpen,
-        bottomOpenSetting,
-        fileData,
-        fileIndex,
-        pageStyles
-      } = this.state;
+    const {classes} = this.props;
+    const {fileData, fileIndex} = this.state;
+    const {leftOpen, bottomOpen, bottomOpenSetting, pageStyles} = this.state;
+    const {BOOK_CONTENT} = this.state.CONTENT;
     console.log(leftOpen, bottomOpen, bottomOpenSetting);
     const BOOK_CONTENT_HEIGHT = this.countLines(),
-      BookContentDiv = (h) => {
-        const {BOOK_CONTENT} = this.state.CONTENT;
-        if (!BOOK_CONTENT) {
-          return;
+      BookContentDiv = (h, mode = 1) => { // mode: 1=dom 2=canvas
+        if (BOOK_CONTENT) {
+          const width = BOOK_CONTENT.offsetWidth,
+            height = BOOK_CONTENT.offsetHeight,
+            p = (fileData[fileIndex] || "").split(R.newline);
+          BOOK_CONTENT.scrollTop = this.state.pageIndex;
+
+          if (mode === 1) {
+            return p.map((e, i) => this.setSearchLabel(e.toString(), "", i, h));
+          } else if (mode === 2) {
+            const canvas = document.getElementById('canvas')
+            this.autoscale(canvas);
+            const ctx = canvas.getContext('2d')
+
+            ctx.clearRect(0, 0, width, height);
+            const __fs = pageStyles.fontSize || 16,
+              __vs = pageStyles.verticalSpacing || 1,
+              __lh = __fs + __vs;
+            ctx.font = `${__fs}px ${pageStyles.fontFamily}`;
+            ctx.textBaseline = "top";
+            let line = 0;
+            for (let x = 0; x < p.length; x++) {
+              const e1 = p[x];
+              let start = 0,
+                end = 0;
+              console.log(`Paragraph=${x}`, e1);
+              for (let y = 0; y < e1.length; y++) {
+                const e2 = e1.substring(start, y);
+                if (width < ctx.measureText(e2).width || y === e1.length - 1) {
+                  let lineStr = e1.substring(start, end);
+                  ctx.fillText(lineStr, 0, line * __lh);
+                  console.log(`Line=${line}`, line * __lh, ctx.measureText(lineStr).width, lineStr);
+                  line++;
+                  start = y;
+                } else {
+                  end = y;
+                }
+              }
+            }
+          }
         }
-        const width = BOOK_CONTENT.offsetWidth,
-          height = BOOK_CONTENT.offsetHeight,
-          p = (fileData[fileIndex] || "").split(R.newline);
-        BOOK_CONTENT.scrollTop = this.state.pageIndex;
-        return p.map((e, i) => this.setSearchLabel(e.toString(), "", i, h));
       }
 
       return (
         <div
           className={classes.content}
+          ref={this.handleInputRef("CONTENT")}
           onClick={this.handleMouseMove(1)}
           onMouseLeave={this.handleMouseMove(0)}
           onMouseMove={this.handleMouseMove(0)}
           onMouseOut={this.handleMouseMove(0)}
-          onMouseOver={this.handleMouseMove(0)}
-          ref={this.handleInputRef("CONTENT")}>
+          onMouseOver={this.handleMouseMove(0)}>
           <div
             id="BOOK_CONTENT"
             className={classes.bookContent}
+            ref={this.handleInputRef("BOOK_CONTENT")}
             style={{
             backgroundImage: pageStyles.backgroundImage,
             backgroundColor: pageStyles.backgroundColor || "#FFFFFF",
@@ -309,10 +362,13 @@ class Content extends Component {
             lineHeight: `${ (pageStyles.fontSize || 16) + (pageStyles.verticalSpacing || 1)}px`,
             fontFamily: pageStyles.fontFamily,
             height: BOOK_CONTENT_HEIGHT
-          }}
-            ref={this.handleInputRef("BOOK_CONTENT")}>
+          }}>
             <div id="BOOK_CONTENT_INNER" ref={this.handleInputRef("BOOK_CONTENT_INNER")}>
               {BookContentDiv(BOOK_CONTENT_HEIGHT)}
+            <canvas
+              id="canvas"
+              width={document.body.offsetWidth - margin * 2}
+              height={document.body.offsetHeight - margin * 2}></canvas>
             </div>
           </div>
           <div className="bookCatalog" ref={this.handleInputRef("BOOK_CATALOG")}>
@@ -485,46 +541,49 @@ class Content extends Component {
   }
 }
 
-const styles = (theme) => ({
-  content: {
-    width: "100%",
-    height: "100vh",
-    overflow: "hidden"
-  },
-  bookContent: {
-    margin: theme.spacing.unit * 3,
-    height: `calc(100% - ${theme.spacing.unit * 6}px)`,
-    width: "-webkit-fill-available",
-    overflow: "hidden"
-  },
-  drawerPaper: {
-    width: app.drawerWidth,
-    height: `calc(100% - ${app.headerHeight}px)`,
-    top: app.headerHeight,
-    borderWidth: 0
-  },
-  toolsBar: {
-    // overflowY: "visible"
-  },
-  toolsBarPaper: {
-    width: "50%",
-    margin: "auto",
-    borderWidth: 0,
-    textAlign: "center"
-  },
-  toolsBarListItem: {
-    textAlign: "center",
-    display: "inline-block"
-  },
-  button: {
-    margin: theme.spacing.unit,
-    backgroundColor: "rgba(0, 0, 0, 0)"
-  },
-  avatar: {
-    // margin: 10
-    width: 56,
-    height: 56
-  }
-})
+const styles = (theme) => {
+  margin = theme.spacing.unit * 3;
+  return ({
+    content: {
+      width: "100%",
+      height: "100vh",
+      overflow: "hidden"
+    },
+    bookContent: {
+      margin: theme.spacing.unit * 3,
+      height: `calc(100% - ${theme.spacing.unit * 6}px)`,
+      width: "-webkit-fill-available",
+      overflow: "hidden"
+    },
+    drawerPaper: {
+      width: app.drawerWidth,
+      height: `calc(100% - ${app.headerHeight}px)`,
+      top: app.headerHeight,
+      borderWidth: 0
+    },
+    toolsBar: {
+      // overflowY: "visible"
+    },
+    toolsBarPaper: {
+      width: "50%",
+      margin: "auto",
+      borderWidth: 0,
+      textAlign: "center"
+    },
+    toolsBarListItem: {
+      textAlign: "center",
+      display: "inline-block"
+    },
+    button: {
+      margin: theme.spacing.unit,
+      backgroundColor: "rgba(0, 0, 0, 0)"
+    },
+    avatar: {
+      // margin: 10
+      width: 56,
+      height: 56
+    }
+  });
+}
 
 export default withStyles(styles)(Content);
