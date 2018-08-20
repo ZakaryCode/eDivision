@@ -279,7 +279,6 @@ class Content extends Component {
   }
 
   autoscale = (canvas) => {
-    const ctx = canvas.getContext('2d');
     const ratio = this.countRatio(canvas);
     if (1 != ratio) {
       canvas.style.width = canvas.width + 'px';
