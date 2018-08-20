@@ -26,6 +26,8 @@ import bottomDrawerTools from '../../store/bottomDrawerTools';
 import app from '../../store/app';
 import * as R from "../../conf/RegExp";
 import * as utils from "../../utils";
+import base64 from "../../utils/base64";
+import * as md5 from "../../utils/md5";
 import AvatarButton, {images} from "./Avatar";
 import SliderButton from "./Slider";
 import MenuButton from "./MenuList";
@@ -440,24 +442,42 @@ class Content extends Component {
                     <Button
                       color="primary"
                       onClick={() => {
-                      fetch("http://api.xfyun.cn/v1/service/v1/tts", {
-                        method: "post",
-                        headers: new Headers({"Content-Type": "application/x-www-form-urlencoded; charset=utf-8"}),
-                        data: utils.json2Form({
-                          "auf": "audio/L16;rate=16000",
-                          "aue": "raw",
-                          "voice_name": "xiaoyan",
-                          "speed": "50",
-                          "volume": "50",
-                          "pitch": "50",
-                          "engine_type": "intp65",
-                          "text_type": "text"
-                        })
-                      }).then((res) => {
-                        console.log(res)
-                      }).catch((err) => {
-                        console.log(err)
-                      });
+                      let URL = "http://api.xfyun.cn/v1/service/v1/tts",
+                        AUE = "raw",
+                        APPID = "",
+                        API_KEY = "";
+                      let getHeader = () => {
+                          let curTime = "" + parseInt(new Date(), 10),
+                            param = "{\"aue\":\"" + AUE + "\",\"auf\":\"audio/L16;rate=16000\",\"voice_name\":\"xiaoyan\",\"engine_type\":" +
+                                "\"intp65\"}",
+                            paramBase64 = base64.encode(param),
+                            checkSum = md5.hex_md5(API_KEY + curTime + paramBase64),
+                            header = {
+                              'X-CurTime': curTime,
+                              'X-Param': paramBase64,
+                              'X-Appid': APPID,
+                              'X-CheckSum': checkSum,
+                              'X-Real-Ip': '127.0.0.1',
+                              'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
+                              'mode': 'no-cors'
+                            }
+                            return header;
+                        },
+                        getBody = (text) => {
+                          let data = {
+                            'text': text
+                          }
+                          return data
+                        }/* contentType = r.headers['Content-Type']; */
+                        fetch(URL, {
+                          method: "post",
+                          headers: new Headers(getHeader()),
+                          data: getBody("科大讯飞是中国最大的智能语音技术提供商")/* utils.json2Form({"auf":"audio/L16;rate=16000","aue":"raw","voice_name": "xiaoyan","speed":"50","volume":"50","pitch":"50","engine_type":"intp65","text_type":"text"}) */
+                        }).then((res) => {
+                          console.log(res)
+                        }).catch((err) => {
+                          console.log(err)
+                        });
                     }}>
                       语音
                     </Button>
