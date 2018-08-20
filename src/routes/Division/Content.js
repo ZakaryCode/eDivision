@@ -13,7 +13,7 @@ import snack from '../../store/snack';
 import InputInfo from "../../components/Input/InputInfo";
 import * as R from "../../conf/RegExp";
 
-const fs = window.require('fs'),
+const _fs_ = window.require('fs'),
   _path_ = window.require('path'),
   electron = window.require("electron");
 const ipc = electron.ipcRenderer;
@@ -101,7 +101,7 @@ class Content extends Component {
       directory
     } = this.state;
     console.log(file, directory);
-    fs.readFile(file, 'utf8', (err, data) => {
+    _fs_.readFile(file, 'utf8', (err, data) => {
       if (err) {
         ipc.send('open-error-get-file-dialog');
       } else {
@@ -115,7 +115,7 @@ class Content extends Component {
             console.log("bookName", bookName);
             console.log("bookData", e, !!e);
             if (!!e) {
-              fs.writeFile(_path_.resolve(directory, bookName + ".txt"), element, (err) => {
+              _fs_.writeFile(_path_.resolve(directory, bookName + ".txt"), element, (err) => {
                 if (err) {
                   ipc.send('open-error-get-file-dialog');
                 } else {

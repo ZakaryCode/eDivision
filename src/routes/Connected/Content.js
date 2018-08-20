@@ -21,7 +21,7 @@ import EnhancedTablePagination from "../../components/Table/TablePagination.jsx"
 import snack from "../../store/snack";
 import InputInfo from "../../components/Input/InputInfo";
 
-const fs = window.require("fs"),
+const _fs_ = window.require("fs"),
   _path_ = window.require("path"),
   electron = window.require("electron"),
   ipc = electron.ipcRenderer;
@@ -195,8 +195,8 @@ class Content extends Component {
           let element = path[index],
             name = _path_.basename(element),
             pathD = _path_.dirname(element);
-          // console.log(element, pathD, name, fs.statSync(element));
-          const state = fs.statSync(element);
+          // console.log(element, pathD, name, _fs_.statSync(element));
+          const state = _fs_.statSync(element);
           for (let i = 0; i < files.length; i++) {
             const e = files[i];
             // console.log(state.ino, e.ino, state.ino === e.ino);
@@ -267,7 +267,7 @@ class Content extends Component {
       writeFilesOrder = (data, index) => {
         index = Math.ceil(Number(index));
         // console.log(directory, bookName + "." + index + ".txt");
-        fs.writeFile(_path_.resolve(directory, bookName + "." + index + ".txt"), data, (err) => {
+        _fs_.writeFile(_path_.resolve(directory, bookName + "." + index + ".txt"), data, (err) => {
           if (err) {
             ipc.send("open-error-get-file-dialog");
           } else {
@@ -279,7 +279,7 @@ class Content extends Component {
       readFilesOrder = (data, arr, index) => {
         // console.log(_path_.resolve(arr[index].path, arr[index].filename));
         try {
-          data += "\r\n" + fs.readFileSync(_path_.resolve(arr[index].path, arr[index].filename)) + "\r\n\r\n\r\n\r\n" + (division || divisionD);
+          data += "\r\n" + _fs_.readFileSync(_path_.resolve(arr[index].path, arr[index].filename)) + "\r\n\r\n\r\n\r\n" + (division || divisionD);
         } catch (error) {
           // console.log(error);
           ipc.send("open-error-get-file-dialog");

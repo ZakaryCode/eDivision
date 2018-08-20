@@ -32,7 +32,7 @@ import AvatarButton, {images} from "./Avatar";
 import SliderButton from "./Slider";
 import MenuButton from "./MenuList";
 
-const fs = window.require('fs'),
+const _fs_ = window.require('fs'),
   _path_ = window.require('path'),
   electron = window.require("electron"),
   remote = electron.remote;
@@ -131,7 +131,7 @@ class Content extends Component {
       return;
     } else {
       console.log("file", file);
-      fs.readFile(file, "utf8", (err, data) => {
+      _fs_.readFile(file, "utf8", (err, data) => {
         if (err) {
           ipc.send("open-error-get-file-dialog");
         } else {
@@ -469,16 +469,12 @@ class Content extends Component {
                           }
                           return data
                         }/* contentType = r.headers['Content-Type']; */
-                        fetch(URL, {
-                          method: "post",
-                          headers: new Headers(getHeader()),
-                          data: getBody("科大讯飞是中国最大的智能语音技术提供商")/* utils.json2Form({"auf":"audio/L16;rate=16000","aue":"raw","voice_name": "xiaoyan","speed":"50","volume":"50","pitch":"50","engine_type":"intp65","text_type":"text"}) */
-                        }).then((res) => {
-                          console.log(res)
-                        }).catch((err) => {
-                          console.log(err)
-                        });
-                    }}>
+                        /* const ses = remote
+                          .getCurrentWebContents()
+                          .session;
+                        console.log("_net_", electron, _net_,net, ses, ses.webrequest); */
+                        ipc.send('get-xfyun-radio',URL, getHeader(), getBody("科大讯飞是中国最大的智能语音技术提供商"));
+                      }}>
                       语音
                     </Button>
                     <Button color="primary" onClick={this.handleToolsBarOpen}>

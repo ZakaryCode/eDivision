@@ -16,7 +16,7 @@ import DialogBoard from "./Dialog";
 import * as R from "../../conf/RegExp";
 import __conf from "../../conf/index";
 
-const fs = window.require("fs"),
+const _fs_ = window.require("fs"),
   _path_ = window.require("path"),
   electron = window.require("electron"),
   remote = electron.remote;
@@ -52,12 +52,12 @@ class Content extends Component {
     };
 
     const file = this.state.configure || this.state.configureD;
-    fs.exists(file, (exists) => {
+    _fs_.exists(file, (exists) => {
       console.log(exists)
       if (!exists) {
         let arr = this.state.arrayMap;
         arr = JSON.stringify(arr);
-        fs.writeFile(file, arr, (err) => {
+        _fs_.writeFile(file, arr, (err) => {
           if (err) {
             ipc.send("open-error-get-file-dialog");
           } else {
@@ -141,7 +141,7 @@ class Content extends Component {
       const setState = (name, data) => {
         this.handleChange(name)(data);
       };
-      fs.readFile(file, "utf8", (err, data) => {
+      _fs_.readFile(file, "utf8", (err, data) => {
         if (err) {
           ipc.send("open-error-get-file-dialog");
         } else {
@@ -163,7 +163,7 @@ class Content extends Component {
       console.log(file, directory, oFileData);
 
       let bookName = (book || bookD);
-      fs.writeFile(_path_.resolve(directory, bookName + ".txt"), oFileData, (err) => {
+      _fs_.writeFile(_path_.resolve(directory, bookName + ".txt"), oFileData, (err) => {
         if (err) {
           ipc.send("open-error-get-file-dialog");
         } else {
@@ -179,7 +179,7 @@ class Content extends Component {
     const file = this.state.configure || this.state.configureD;
     let arr = this.state.arrayMap;
     arr = JSON.stringify(arr);
-    fs.writeFile(file, arr, (err) => {
+    _fs_.writeFile(file, arr, (err) => {
       if (err) {
         ipc.send("open-error-get-file-dialog");
       } else {
@@ -261,7 +261,7 @@ class Content extends Component {
     }
     console.log(file);
 
-    fs.unlink(file, (err) => {
+    _fs_.unlink(file, (err) => {
       console.log(err);
       snack.setMessage(file + " - 删除成功!");
     });
@@ -576,7 +576,7 @@ class Content extends Component {
     const setState = (name, data) => {
         this.handleChange(name)(data);
       },
-      readF = () => fs.readFile(file, "utf8", (err, data) => {
+      readF = () => _fs_.readFile(file, "utf8", (err, data) => {
         if (err) {
           ipc.send("open-error-get-file-dialog");
         } else {
@@ -586,10 +586,10 @@ class Content extends Component {
         }
       });
     const file = this.state.configure || this.state.configureD;
-    fs.exists(file, (exists) => {
+    _fs_.exists(file, (exists) => {
       console.log(exists);
       if (!exists) {
-        fs.writeFile(file, this.state.arrayMap, (err) => {
+        _fs_.writeFile(file, this.state.arrayMap, (err) => {
           if (err) {
             ipc.send("open-error-get-file-dialog");
           } else {
