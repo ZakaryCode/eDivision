@@ -490,7 +490,7 @@ class Content extends Component {
     });
   }
   setSearchLabel = (element, label, index) => {
-    let spanLabel = () => {
+    let spanLabel = (element, label, index) => {
       element = element.split(label);
       if (!element.length) 
         return <span name="value"><br/></span>;

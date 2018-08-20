@@ -91,17 +91,24 @@ class Content extends Component {
 
     document.addEventListener('keyup', (e) => {
       let pageIndex = this.state.pageIndex,
-        pageHeight = this.countLines();
+        pageHeight = this.countLines(1),
+        pageScrollHeight = this.countLines(2);
       switch (Number(e.keyCode)) {
         case 37:
-          pageIndex -= pageHeight;
-          setState("pageIndex", pageIndex >= 0
-            ? pageIndex
-            : 0);
+          if (pageIndex - pageHeight >= 0) {
+            pageIndex -= pageHeight;
+            setState("pageIndex", pageIndex);
+          } else {
+            this.handleSwitchPage(0)();
+          }
           break;
         case 39:
-          pageIndex += pageHeight;
-          setState("pageIndex", pageIndex);
+          if (pageScrollHeight >= pageHeight * 2 + pageIndex) {
+            pageIndex += pageHeight;
+            setState("pageIndex", pageIndex);
+          } else {
+            this.handleSwitchPage(1)();
+          }
           break;
         default:
           break;
@@ -190,7 +197,7 @@ class Content extends Component {
   }
 
   setSearchLabel = (element, label, index, height) => {
-    let spanLabel = () => {
+    let spanLabel = (element, label, index) => {
       element = element.split(label);
       if (!element.length) 
         return <span name="value"><br/></span>;
@@ -254,17 +261,26 @@ class Content extends Component {
     this.setState({fileIndex: i, pageIndex: 0});
   }
 
-  countLines = () => {
+  countLines = (type = 1) => { // type: 0=countLines 1=pageHeight 2=scrollHeight
     const {pageStyles} = this.state;
-    const {CONTENT} = this.state.CONTENT;
-    if (!CONTENT) {
-      return;
+    const {CONTENT, BOOK_CONTENT} = this.state.CONTENT;
+    if (!CONTENT || !BOOK_CONTENT) {
+      return 0;
     }
     let lh = parseInt((pageStyles.fontSize || 16) + (pageStyles.verticalSpacing || 1), 10),
       h = parseInt(CONTENT.offsetHeight - margin * 2, 10),
       lc = parseInt(h / lh, 10);
     console.log('line count:', lc, 'line-height:', lh, 'height:', h);
-    return lc * lh - (pageStyles.verticalSpacing || 1);
+    switch (type) {
+      case 0:
+        return lc;
+      case 1:
+        return lc * lh - (pageStyles.verticalSpacing || 1);
+      case 2:
+        return BOOK_CONTENT.scrollHeight;
+      default:
+        return lc;
+    }
   }
 
   countRatio = (canvas) => {
@@ -296,17 +312,20 @@ class Content extends Component {
     const {leftOpen, bottomOpen, bottomOpenSetting, pageStyles} = this.state;
     const {BOOK_CONTENT} = this.state.CONTENT;
     console.log(leftOpen, bottomOpen, bottomOpenSetting);
-    const BOOK_CONTENT_HEIGHT = this.countLines(),
+    const BOOK_CONTENT_HEIGHT = this.countLines(1),
+      BOOK_CONTENT_SCROLL_HEIGHT = this.countLines(2),
       BookContentDiv = (h, mode = 1) => { // mode: 1=dom 2=canvas
         if (BOOK_CONTENT) {
-          const width = BOOK_CONTENT.offsetWidth,
-            height = BOOK_CONTENT.offsetHeight,
-            p = (fileData[fileIndex] || "").split(R.newline);
-          BOOK_CONTENT.scrollTop = this.state.pageIndex;
+          const p = (fileData[fileIndex] || "").split(R.newline);
+          BOOK_CONTENT.scrollTop = (this.state.pageIndex + BOOK_CONTENT_HEIGHT > BOOK_CONTENT_SCROLL_HEIGHT
+            ? Math.floor(BOOK_CONTENT_SCROLL_HEIGHT / BOOK_CONTENT_HEIGHT - 1) * BOOK_CONTENT_HEIGHT
+            : this.state.pageIndex);
 
           if (mode === 1) {
             return p.map((e, i) => this.setSearchLabel(e.toString(), "", i, h));
           } else if (mode === 2) {
+            const width = BOOK_CONTENT.offsetWidth,
+              height = BOOK_CONTENT.offsetHeight;
             const canvas = document.getElementById('canvas')
             this.autoscale(canvas);
             const ctx = canvas.getContext('2d')
@@ -364,10 +383,10 @@ class Content extends Component {
           }}>
             <div id="BOOK_CONTENT_INNER" ref={this.handleInputRef("BOOK_CONTENT_INNER")}>
               {BookContentDiv(BOOK_CONTENT_HEIGHT)}
-            <canvas
-              id="canvas"
-              width={document.body.offsetWidth - margin * 2}
-              height={document.body.offsetHeight - margin * 2}></canvas>
+              <canvas
+                id="canvas"
+                width={document.body.offsetWidth - margin * 2}
+                height={document.body.offsetHeight - margin * 2}></canvas>
             </div>
           </div>
           <div className="bookCatalog" ref={this.handleInputRef("BOOK_CATALOG")}>
