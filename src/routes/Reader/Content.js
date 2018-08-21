@@ -444,13 +444,18 @@ class Content extends Component {
                       onClick={() => {
                       let URL = "http://api.xfyun.cn/v1/service/v1/tts",
                         AUE = "raw",
-                        APPID = "",
-                        API_KEY = "";
+                        APPID = "5b680059",
+                        API_KEY = "258e2e2b381581eed5fa2e7ac07628f7";
                       let getHeader = () => {
-                          let curTime = "" + parseInt(new Date(), 10),
-                            param = "{\"aue\":\"" + AUE + "\",\"auf\":\"audio/L16;rate=16000\",\"voice_name\":\"xiaoyan\",\"engine_type\":" +
-                                "\"intp65\"}",
-                            paramBase64 = base64.encode(param),
+                          let curTime = "" + parseInt(new Date().getTime() / 1000, 10),
+                            param = {
+                              auf: "audio/L16;rate=16000",
+                              aue: AUE,
+                              voice_name: "xiaoyan",
+                              engine_type: "intp65",
+                              text_type: "text"
+                            },
+                            paramBase64 = base64.encode(JSON.stringify(param)),
                             checkSum = md5.hex_md5(API_KEY + curTime + paramBase64),
                             header = {
                               'X-CurTime': curTime,
@@ -458,23 +463,18 @@ class Content extends Component {
                               'X-Appid': APPID,
                               'X-CheckSum': checkSum,
                               'X-Real-Ip': '127.0.0.1',
-                              'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
-                              'mode': 'no-cors'
+                              'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'
                             }
                             return header;
                         },
                         getBody = (text) => {
                           let data = {
-                            'text': text
+                            text: text
                           }
-                          return data
-                        }/* contentType = r.headers['Content-Type']; */
-                        /* const ses = remote
-                          .getCurrentWebContents()
-                          .session;
-                        console.log("_net_", electron, _net_,net, ses, ses.webrequest); */
-                        ipc.send('get-xfyun-radio',URL, getHeader(), getBody("科大讯飞是中国最大的智能语音技术提供商"));
-                      }}>
+                          return utils.json2Form(data);
+                        }
+                        ipc.send('get-xfyun-radio', AUE, URL, getHeader(), getBody("科大讯飞是中国最大的智能语音技术提供商"));
+                    }}>
                       语音
                     </Button>
                     <Button color="primary" onClick={this.handleToolsBarOpen}>

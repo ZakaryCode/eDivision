@@ -5,7 +5,7 @@
   "main": "main.js",
   "homepage": "./",
   "scripts": {
-    "electron": "electron .",
+    "electron": "chcp 65001 && electron .",
     "electron-win": "electron-packager . division --win --out ./buildElectron --arch=x64 --asar --app-version=0.1.2 --electron-version=2.0.5",
     "electron-Win": "electron-packager . 'Hosts' --platform=win32 --out ./buildElectron --arch=x64 --asar --app-version=0.1.2 --electron-version=2.0.5",
     "electron-linux": "electron-packager . 'Hosts' --platform=linux --out ./buildElectron --arch=x64 --asar --app-version=0.1.2 --electron-version=2.0.5",
