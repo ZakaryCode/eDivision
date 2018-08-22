@@ -99,6 +99,9 @@ class Content extends Component {
     });
 
     document.addEventListener('keyup', (e) => {
+      const {leftOpen, bottomOpen, bottomOpenSetting, handleClickFile} = this.state;
+      if (leftOpen || bottomOpen || bottomOpenSetting || handleClickFile) 
+        return;
       let pageIndex = this.state.pageIndex,
         pageHeight = this.countLines(1),
         pageScrollHeight = this.countLines(2);
