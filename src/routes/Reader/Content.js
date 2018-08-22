@@ -15,7 +15,6 @@ import Divider from '@material-ui/core/Divider';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
-import ColorPicker from '@mapbox/react-colorpickr';
 
 import Drawer from "../../components/Drawer";
 import Stepper from "../../components/Stepper";
@@ -29,8 +28,11 @@ import * as utils from "../../utils";
 import base64 from "../../utils/base64";
 import * as md5 from "../../utils/md5";
 import AvatarButton, {images} from "./Avatar";
-import SliderButton from "./Slider";
+import SliderButton from "./MenuSlider";
+import ColorPicker from "./MenuPickerColor";
 import MenuButton from "./MenuList";
+import ToolsBar from "./MenuToolsBar";
+import ToolsBarSetting from "./MenuToolsBarSetting";
 
 const _fs_ = window.require('fs'),
   _path_ = window.require('path'),
@@ -189,17 +191,11 @@ class Content extends Component {
         this.handleDrawerOpen("bottomOpen")(false);
       }
     }
-
   }
 
   handleDirOpen = () => {
     this.handleDrawerOpen("bottomOpen")(false);
     this.handleDrawerOpen("leftOpen")(true);
-  }
-
-  handleToolsBarOpen = () => {
-    this.handleDrawerOpen("bottomOpen")(false);
-    this.handleDrawerOpen("bottomOpenSetting")(true);
   }
 
   setSearchLabel = (element, label, index, height) => {
@@ -248,6 +244,12 @@ class Content extends Component {
     }
   }
 
+  handlePageStyle = name => (value) => {
+    let pageStyles = this.state.pageStyles;
+    pageStyles[name] = value;
+    this.setState({pageStyles});
+  }
+
   handleSwitchPage = flag => (count) => {
     let i;
     if (flag === 2) {
@@ -266,6 +268,58 @@ class Content extends Component {
     }
     this.setState({fileIndex: i, pageIndex: 0});
   }
+
+  handleRadio = () => {
+    let URL = "http://api.xfyun.cn/v1/service/v1/tts",
+      AUE = "raw",
+      APPID = "5b680059",
+      API_KEY = "258e2e2b381581eed5fa2e7ac07628f7";
+    let getHeader = () => {
+        let curTime = "" + parseInt(new Date().getTime() / 1000, 10),
+          param = {
+            auf: "audio/L16;rate=16000",
+            aue: AUE,
+            voice_name: "xiaoyan",
+            engine_type: "intp65",
+            text_type: "text"
+          },
+          paramBase64 = base64.encode(JSON.stringify(param)),
+          checkSum = md5.hex_md5(API_KEY + curTime + paramBase64),
+          header = {
+            'X-CurTime': curTime,
+            'X-Param': paramBase64,
+            'X-Appid': APPID,
+            'X-CheckSum': checkSum,
+            'X-Real-Ip': '127.0.0.1',
+            'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'
+          }
+        return header;
+      },
+      getBody = (text) => {
+        let data = {
+          text: text
+        }
+        return utils.json2Form(data);
+      };
+    ipc.send('get-xfyun-radio', AUE, URL, getHeader(), getBody("科大讯飞是中国最大的智能语音技术提供商"));
+    ipc.on("return-xfyun-radio", (event, data) => {
+      console.log(event, data);
+      let source = audioCtx.createBufferSource(),
+        audioData = utils.toArrayBuffer(data);
+      audioCtx.decodeAudioData(audioData, function (buffer) {
+        source.buffer = buffer;
+        source.connect(audioCtx.destination);
+        source.loop = false;
+        source.start(0);
+      }, function (e) {
+        console.log("Error with decoding audio data" + e.err);
+      });
+    });
+    ipc.on("return-xfyun-radio-error", (event, data) => {
+      console.log(event, data);
+      ipc.send('open-error-dialog', JSON.stringify(data));
+    });
+  };
 
   countLines = (type = 1) => { // type: 0=countLines 1=pageHeight 2=scrollHeight
     const {pageStyles} = this.state;
@@ -363,236 +417,91 @@ class Content extends Component {
             }
           }
         }
-      }
+      };
 
-      return (
+    return (
+      <div
+        className={classes.content}
+        ref={this.handleInputRef("CONTENT")}
+        onClick={this.handleMouseMove(1)}
+        onMouseLeave={this.handleMouseMove(0)}
+        onMouseMove={this.handleMouseMove(0)}
+        onMouseOut={this.handleMouseMove(0)}
+        onMouseOver={this.handleMouseMove(0)}
+        style={{
+        backgroundImage: pageStyles.backgroundImage,
+        backgroundColor: pageStyles.backgroundColor || "#FFFFFF"
+      }}>
         <div
-          className={classes.content}
-          ref={this.handleInputRef("CONTENT")}
-          onClick={this.handleMouseMove(1)}
-          onMouseLeave={this.handleMouseMove(0)}
-          onMouseMove={this.handleMouseMove(0)}
-          onMouseOut={this.handleMouseMove(0)}
-          onMouseOver={this.handleMouseMove(0)}>
-          <div
-            id="BOOK_CONTENT"
-            className={classes.bookContent}
-            ref={this.handleInputRef("BOOK_CONTENT")}
-            style={{
-            backgroundImage: pageStyles.backgroundImage,
-            backgroundColor: pageStyles.backgroundColor || "#FFFFFF",
-            color: pageStyles.color || "#000000",
-            fontSize: `${pageStyles.fontSize || 16}px`,
-            lineHeight: `${ (pageStyles.fontSize || 16) + (pageStyles.verticalSpacing || 1)}px`,
-            fontFamily: pageStyles.fontFamily,
-            height: BOOK_CONTENT_HEIGHT
-          }}>
-            <div id="BOOK_CONTENT_INNER" ref={this.handleInputRef("BOOK_CONTENT_INNER")}>
-              {BookContentDiv(BOOK_CONTENT_HEIGHT)}
-              <canvas
-                id="canvas"
-                width={document.body.offsetWidth - margin * 2}
-                height={document.body.offsetHeight - margin * 2}></canvas>
-            </div>
-          </div>
-          <div className="bookCatalog" ref={this.handleInputRef("BOOK_CATALOG")}>
-            <Drawer
-              anchor="left"
-              open={leftOpen}
-              className={classes.drawerPaper}
-              handleDrawerOpen={this.handleDrawerOpen("leftOpen")}>
-              <div>
-                <List>
-                  {fileData.map((e, i) => {
-                    const p = e.split(R.newline);
-                    for (let index = 0; index < p.length; index++) {
-                      const element = p[index];
-                      if (element) {
-                        return <ListItem
-                          button
-                          onClick={() => {
-                          this.handleSwitchPage(2)(i);
-                          this.handleDrawerOpen("leftOpen")(false);
-                        }}>
-                          <ListItemText primary={element}/>
-                        </ListItem>
-                      }
-                    }
-                  })}
-                </List>
-              </div>
-            </Drawer>
-          </div>
-          <div className={classes.toolsBar} ref={this.handleInputRef("TOOLS_BAR")}>
-            <Drawer
-              anchor="bottom"
-              open={bottomOpen}
-              className={classes.toolsBarPaper}
-              handleDrawerOpen={this.handleDrawerOpen("bottomOpen")}>
-              <div>
-                <List>
-                  <ListItem className={classes.toolsBarListItem}>
-                    <Stepper
-                      start={0}
-                      count={this.state.fileData.length}
-                      steps={fileIndex}
-                      onSwitch={this.handleSwitchPage}/>
-                  </ListItem>
-                  <Divider/>
-                  <ListItem className={classes.toolsBarListItem}>
-                    <Button color="primary" onClick={this.handleDirOpen}>
-                      目录
-                    </Button>
-                    <Button
-                      color="primary"
-                      onClick={() => {
-                      let URL = "http://api.xfyun.cn/v1/service/v1/tts",
-                        AUE = "raw",
-                        APPID = "5b680059",
-                        API_KEY = "258e2e2b381581eed5fa2e7ac07628f7";
-                      let getHeader = () => {
-                          let curTime = "" + parseInt(new Date().getTime() / 1000, 10),
-                            param = {
-                              auf: "audio/L16;rate=16000",
-                              aue: AUE,
-                              voice_name: "xiaoyan",
-                              engine_type: "intp65",
-                              text_type: "text"
-                            },
-                            paramBase64 = base64.encode(JSON.stringify(param)),
-                            checkSum = md5.hex_md5(API_KEY + curTime + paramBase64),
-                            header = {
-                              'X-CurTime': curTime,
-                              'X-Param': paramBase64,
-                              'X-Appid': APPID,
-                              'X-CheckSum': checkSum,
-                              'X-Real-Ip': '127.0.0.1',
-                              'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'
-                            }
-                            return header;
-                        },
-                        getBody = (text) => {
-                          let data = {
-                            text: text
-                          }
-                          return utils.json2Form(data);
-                        };
-                      ipc.send('get-xfyun-radio', AUE, URL, getHeader(), getBody("科大讯飞是中国最大的智能语音技术提供商"));
-                      ipc.on("return-xfyun-radio", (event, data) => {
-                        console.log(event, data);
-                        let source = audioCtx.createBufferSource(),
-                          audioData = utils.toArrayBuffer(data);
-                        audioCtx.decodeAudioData(audioData, function (buffer) {
-                          source.buffer = buffer;
-                          source.connect(audioCtx.destination);
-                          source.loop = false;
-                          source.start(0);
-                        }, function (e) {
-                          console.log("Error with decoding audio data" + e.err);
-                        });
-                      });
-                      ipc.on("return-xfyun-radio-error", (event, data) => {
-                        console.log(event, data);
-                        ipc.send('open-error-dialog', JSON.stringify(data));
-                      });
-                    }}>
-                      语音
-                    </Button>
-                    <Button color="primary" onClick={this.handleToolsBarOpen}>
-                      设置
-                    </Button>
-                    <Button color="primary" onClick={this.handleClickFile}>
-                      刷新
-                    </Button>
-                    <Button
-                      color="primary"
-                      onClick={() => {
-                      remote
-                        .getCurrentWindow()
-                        .minimize()
-                    }}>
-                      最小化
-                    </Button>
-                    <Button
-                      color="primary"
-                      onClick={() => {
-                      remote
-                        .getCurrentWindow()
-                        .close()
-                    }}>
-                      退出阅读
-                    </Button>
-                  </ListItem>
-                </List>
-              </div>
-            </Drawer>
-          </div>
-          <div
-            className={classes.toolsBar}
-            ref={this.handleInputRef("TOOLS_BAR_SETTING")}>
-            <Drawer
-              anchor="bottom"
-              open={bottomOpenSetting}
-              className={classes.toolsBarPaper}
-              handleDrawerOpen={this.handleDrawerOpen("bottomOpenSetting")}>
-              <div>
-                <List>
-                  <ListItem className={classes.toolsBarListItem}>
-                    {images.map(e => (<AvatarButton
-                      title={e.title}
-                      url={e.url}
-                      backgroundColor={e.backgroundColor}
-                      color={e.color}
-                      isClicked={true}
-                      onClick={() => {
-                      let pageStyles = this.state.pageStyles;
-                      pageStyles.backgroundColor = e.backgroundColor;
-                      pageStyles.backgroundImage = `url(${e.url})`;
-                      pageStyles.color = e.color;
-                      this.setState({pageStyles});
-                    }}/>))}
-                  </ListItem>
-                  <Divider/>
-                  <ListItem
-                    className={classes.toolsBarListItem}
-                    style={{
-                    display: "flex"
-                  }}>
-                    <MenuButton
-                      name={`字体 ${this.state.pageStyles.fontFamily}`}
-                      value={this.state.pageStyles.fontFamily}
-                      handleSwitch={(value) => {
-                      let pageStyles = this.state.pageStyles;
-                      pageStyles.fontFamily = value;
-                      this.setState({pageStyles});
-                    }}/>
-                    <SliderButton
-                      name={`字号 ${this.state.pageStyles.fontSize}`}
-                      min={12}
-                      max={128}
-                      value={this.state.pageStyles.fontSize}
-                      handleSwitch={(event, value) => {
-                      let pageStyles = this.state.pageStyles;
-                      pageStyles.fontSize = value;
-                      this.setState({pageStyles});
-                    }}/>
-                    <SliderButton
-                      name={`行间距 ${this.state.pageStyles.verticalSpacing}`}
-                      min={1}
-                      max={128}
-                      value={this.state.pageStyles.verticalSpacing}
-                      handleSwitch={(event, value) => {
-                      let pageStyles = this.state.pageStyles;
-                      pageStyles.verticalSpacing = value;
-                      this.setState({pageStyles});
-                    }}/>
-                  </ListItem>
-                </List>
-              </div>
-            </Drawer>
+          id="BOOK_CONTENT"
+          className={classes.bookContent}
+          ref={this.handleInputRef("BOOK_CONTENT")}
+          style={{
+          color: pageStyles.color || "#000000",
+          fontSize: `${pageStyles.fontSize || 16}px`,
+          lineHeight: `${ (pageStyles.fontSize || 16) + (pageStyles.verticalSpacing || 1)}px`,
+          fontFamily: pageStyles.fontFamily,
+          height: BOOK_CONTENT_HEIGHT
+        }}>
+          <div id="BOOK_CONTENT_INNER" ref={this.handleInputRef("BOOK_CONTENT_INNER")}>
+            {BookContentDiv(BOOK_CONTENT_HEIGHT)}
+            <canvas
+              id="canvas"
+              width={document.body.offsetWidth - margin * 2}
+              height={document.body.offsetHeight - margin * 2}></canvas>
           </div>
         </div>
-      );
+        <div className="bookCatalog" ref={this.handleInputRef("BOOK_CATALOG")}>
+          <Drawer
+            anchor="left"
+            open={leftOpen}
+            className={classes.drawerPaper}
+            handleDrawerOpen={this.handleDrawerOpen("leftOpen")}>
+            <div>
+              <List>
+                {fileData.map((e, i) => {
+                  const p = e.split(R.newline);
+                  for (let index = 0; index < p.length; index++) {
+                    const element = p[index];
+                    if (element) {
+                      return <ListItem
+                        button
+                        onClick={() => {
+                        this.handleSwitchPage(2)(i);
+                        this.handleDrawerOpen("leftOpen")(false);
+                      }}>
+                        <ListItemText primary={element}/>
+                      </ListItem>
+                    }
+                  }
+                })}
+              </List>
+            </div>
+          </Drawer>
+        </div>
+        <div className={classes.toolsBar} ref={this.handleInputRef("TOOLS_BAR")}>
+          <ToolsBar
+            fileL={fileData.length}
+            fileIndex={fileIndex}
+            handleSwitchPage={this.handleSwitchPage}
+            handleDirOpen={this.handleDirOpen}
+            handleRadio={this.handleRadio}
+            handleClickFile={this.handleClickFile}
+            handlePageStyle={this.handlePageStyle}
+            handleDrawerOpen={this.handleDrawerOpen}
+            bottomOpen={bottomOpen}/>
+        </div>
+        <div
+          className={classes.toolsBar}
+          ref={this.handleInputRef("TOOLS_BAR_SETTING")}>
+          <ToolsBarSetting
+            pageStyles={pageStyles}
+            handlePageStyle={this.handlePageStyle}
+            handleDrawerOpen={this.handleDrawerOpen}
+            bottomOpenSetting={bottomOpenSetting}/>
+        </div>
+      </div>
+    );
   }
 }
 
