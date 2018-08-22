@@ -38,6 +38,9 @@ const _fs_ = window.require('fs'),
   remote = electron.remote;
 const ipc = electron.ipcRenderer;
 
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+const audioCtx = new AudioContext();
+
 let margin;
 class Content extends Component {
   static propTypes = {
@@ -51,6 +54,7 @@ class Content extends Component {
       fileData: [],
       fileIndex: 0,
       pageIndex: 0,
+      radioIndex: 0,
       leftOpen: leftDrawer.open,
       bottomOpen: bottomDrawer.open,
       bottomOpenSetting: bottomDrawerTools.open,
@@ -472,8 +476,25 @@ class Content extends Component {
                             text: text
                           }
                           return utils.json2Form(data);
-                        }
-                        ipc.send('get-xfyun-radio', AUE, URL, getHeader(), getBody("科大讯飞是中国最大的智能语音技术提供商"));
+                        };
+                      ipc.send('get-xfyun-radio', AUE, URL, getHeader(), getBody("科大讯飞是中国最大的智能语音技术提供商"));
+                      ipc.on("return-xfyun-radio", (event, data) => {
+                        console.log(event, data);
+                        let source = audioCtx.createBufferSource(),
+                          audioData = utils.toArrayBuffer(data);
+                        audioCtx.decodeAudioData(audioData, function (buffer) {
+                          source.buffer = buffer;
+                          source.connect(audioCtx.destination);
+                          source.loop = false;
+                          source.start(0);
+                        }, function (e) {
+                          console.log("Error with decoding audio data" + e.err);
+                        });
+                      });
+                      ipc.on("return-xfyun-radio-error", (event, data) => {
+                        console.log(event, data);
+                        ipc.send('open-error-dialog', JSON.stringify(data));
+                      });
                     }}>
                       语音
                     </Button>

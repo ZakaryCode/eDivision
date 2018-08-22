@@ -42,15 +42,15 @@ ipc.on('get-xfyun-radio', (event, AUE, url, headers, body) => {
       console.log(`STATUS: ${res.statusCode}`)
       console.log(`HEADERS: ${JSON.stringify(res.headers)}`, res.headers["content-type"] == 'audio/mpeg')
       let chunks = [],
-        size = 0;
+        size = 0,
+        chunkData = {};
       res.on('data', (chunk) => {
         if (res.headers["content-type"] == "audio/mpeg") {
           chunks.push(chunk);
           size += chunk.length;
         } else {
           console.log(`BODY: ${chunk}`);
-          chunk = JSON.parse(chunk);
-          dialog.showErrorBox('错误', "sid=" + chunk.sid + ";desc=" + chunk.desc);
+          chunkData = JSON.parse(chunk);
         }
       })
       res.on('end', () => {
@@ -74,24 +74,23 @@ ipc.on('get-xfyun-radio', (event, AUE, url, headers, body) => {
           }
           console.log(`BODY: ${data.toString()}`);
           let sid = res.headers['sid']
-          if (AUE === "raw") {
-            const __path = sid + ".wav";
-            writeAudio(__path, data);
-          } else {
-            const __path = sid + ".mp3";
-            writeAudio(__path, data);
-          }
+          // if (AUE === "raw") {const __path = sid + ".wav";writeAudio(__path, data); }
+          // else {const __path = sid + ".mp3";writeAudio(__path, data); }
           console.log("success, sid = " + sid);
+          event
+            .sender
+            .send('return-xfyun-radio', data);
         } else {
-          console.log('\nresponse请求中没有更多数据。')
+          // dialog.showErrorBox('错误', "sid=" + chunkData.sid + ";desc=" +
+          // chunkData.desc);
+          event
+            .sender
+            .send('return-xfyun-radio-error', chunkData);
         }
       })
       res.on('error', (error) => {
         console.log(`ERROR: ${error}`);
       })
-    });
-    req.on('login', (authInfo, callback) => {
-      callback()
     });
   });
 });

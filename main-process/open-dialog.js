@@ -51,3 +51,7 @@ ipc.on('open-directory-dialog', function (event) {
 ipc.on('open-error-get-file-dialog', function (event) {
   dialog.showErrorBox('错误', '文件操作发生错误.');
 });
+
+ipc.on('open-error-dialog', function (event, msg) {
+  dialog.showErrorBox('错误', msg);
+});
