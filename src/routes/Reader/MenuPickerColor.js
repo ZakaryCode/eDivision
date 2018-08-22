@@ -15,6 +15,7 @@ class Content extends Component {
     classes: PropTypes.object.isRequired,
     name: PropTypes.string.isRequired,
     value: PropTypes.number.isRequired,
+    handleMenuBarControl: PropTypes.func.isRequired,
     handleSwitch: PropTypes.func.isRequired
   };
   button = null;
@@ -26,10 +27,16 @@ class Content extends Component {
 
   handleClickListItem = event => {
     this.setState({anchorEl: event.currentTarget});
+    this
+      .props
+      .handleMenuBarControl(!!event.currentTarget);
   };
 
   handleClose = () => {
     this.setState({anchorEl: null});
+    this
+      .props
+      .handleMenuBarControl(!!null);
   };
 
   handleChange = (color) => {
@@ -67,7 +74,7 @@ class Content extends Component {
                 : 'center bottom'
             }}>
               <Paper>
-                <ClickAwayListener onClickAway={() => {}}>
+                <ClickAwayListener onClickAway={this.handleClose}>
                   <MenuItem
                     style={{
                     display: "flex",

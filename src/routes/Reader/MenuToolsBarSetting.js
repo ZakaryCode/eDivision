@@ -26,6 +26,7 @@ class Content extends Component {
     classes: PropTypes.object.isRequired,
     pageStyles: PropTypes.object.isRequired,
     handlePageStyle: PropTypes.func.isRequired,
+    handleMenuBarControl: PropTypes.func.isRequired,
     handleDrawerOpen: PropTypes.func.isRequired,
     bottomOpenSetting: PropTypes.bool.isRequired
   };
@@ -73,7 +74,8 @@ class Content extends Component {
                 value={pageStyles.fontFamily}
                 handleSwitch={(value) => {
                 handlePageStyle("fontFamily")(value);
-              }}/>
+              }}
+                handleMenuBarControl={this.props.handleMenuBarControl}/>
               <SliderButton
                 name={`字号 ${pageStyles.fontSize}`}
                 min={12}
@@ -81,7 +83,8 @@ class Content extends Component {
                 value={pageStyles.fontSize}
                 handleSwitch={(event, value) => {
                 handlePageStyle("fontSize")(value);
-              }}/>
+              }}
+                handleMenuBarControl={this.props.handleMenuBarControl}/>
               <SliderButton
                 name={`行间距 ${pageStyles.verticalSpacing}`}
                 min={1}
@@ -89,7 +92,8 @@ class Content extends Component {
                 value={pageStyles.verticalSpacing}
                 handleSwitch={(event, value) => {
                 handlePageStyle("verticalSpacing")(value);
-              }}/>
+              }}
+                handleMenuBarControl={this.props.handleMenuBarControl}/>
               <ColorPicker
                 name={`字色 ${pageStyles.color}`}
                 min={1}
@@ -97,7 +101,8 @@ class Content extends Component {
                 value={pageStyles.color}
                 handleSwitch={(event, value) => {
                 handlePageStyle("color")(value);
-              }}/>
+              }}
+                handleMenuBarControl={this.props.handleMenuBarControl}/>
             </ListItem>
           </List>
         </div>

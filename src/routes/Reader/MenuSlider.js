@@ -27,10 +27,16 @@ class Content extends Component {
 
   handleClickListItem = event => {
     this.setState({anchorEl: event.currentTarget});
+    this
+      .props
+      .handleMenuBarControl(!!event.currentTarget);
   };
 
   handleClose = () => {
     this.setState({anchorEl: null});
+    this
+      .props
+      .handleMenuBarControl(!!null);
   };
 
   render() {
@@ -103,8 +109,7 @@ const styles = theme => ({
     flex: 1
   },
   popper: {
-    // display: "flex",
-    // position: "fixed!important"
+    // display: "flex", position: "fixed!important"
   }
 });
 

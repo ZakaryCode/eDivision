@@ -173,7 +173,7 @@ class Content extends Component {
       CATALOG = BOOK_CATALOG.children[0].children[0],
       TOOLSBAR = TOOLS_BAR.children[0].children[0],
       TOOLSBARSETTING = TOOLS_BAR_SETTING.children[0].children[0];
-    if (i === 1) {
+    if (i === 1 && !this.state.handleMenuBarControlCall) {
       console.log(leftOpen, bottomOpen, bottomOpenSetting, CATALOG.offsetLeft + CATALOG.offsetWidth + 10, e.clientX, TOOLSBAR.offsetTop - TOOLSBAR.offsetHeight - 10, e.clientY);
       if (leftOpen && CATALOG.offsetLeft + CATALOG.offsetWidth + 10 <= e.clientX) {
         this.handleDrawerOpen("leftOpen")(false);
@@ -263,6 +263,15 @@ class Content extends Component {
       return;
     }
     this.setState({fileIndex: i, pageIndex: 0});
+  }
+
+  handleMenuBarControl = (open) => {
+    console.log("handleMenuBarControl", open);
+    setTimeout(() => {
+      this.setState({
+        handleMenuBarControlCall: !!open
+      });
+    }, 10);
   }
 
   handleRadio = () => {
@@ -482,7 +491,7 @@ class Content extends Component {
             handleSwitchPage={this.handleSwitchPage}
             handleRadio={this.handleRadio}
             handleClickFile={this.handleClickFile}
-            handlePageStyle={this.handlePageStyle}
+            handleMenuBarControl={this.handleMenuBarControl}
             handleDrawerOpen={this.handleDrawerOpen}
             bottomOpen={bottomOpen}/>
         </div>
@@ -492,6 +501,7 @@ class Content extends Component {
           <ToolsBarSetting
             pageStyles={pageStyles}
             handlePageStyle={this.handlePageStyle}
+            handleMenuBarControl={this.handleMenuBarControl}
             handleDrawerOpen={this.handleDrawerOpen}
             bottomOpenSetting={bottomOpenSetting}/>
         </div>

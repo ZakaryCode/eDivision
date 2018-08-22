@@ -15,6 +15,7 @@ class Content extends Component {
     max: PropTypes.number.isRequired,
     min: PropTypes.number.isRequired,
     value: PropTypes.number.isRequired,
+    handleMenuBarControl: PropTypes.func.isRequired,
     onChange: PropTypes.func.isRequired
   };
   button = null;
@@ -26,10 +27,16 @@ class Content extends Component {
 
   handleClickListItem = event => {
     this.setState({anchorEl: event.currentTarget});
+    this
+      .props
+      .handleMenuBarControl(!!event.currentTarget);
   };
 
   handleClose = () => {
     this.setState({anchorEl: null});
+    this
+      .props
+      .handleMenuBarControl(!!null);
   };
 
   handleSwitch = (value) => {

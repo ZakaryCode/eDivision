@@ -30,6 +30,7 @@ class Content extends Component {
     handleSwitchPage: PropTypes.func.isRequired,
     handleRadio: PropTypes.func.isRequired,
     handleClickFile: PropTypes.func.isRequired,
+    handleMenuBarControl: PropTypes.func.isRequired,
     handleDrawerOpen: PropTypes.func.isRequired,
     bottomOpen: PropTypes.bool.isRequired
   };
