@@ -10,33 +10,16 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withStyles} from '@material-ui/core/styles';
-import Button from '@material-ui/core/Button';
 import Divider from '@material-ui/core/Divider';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
-import ListItemText from '@material-ui/core/ListItemText';
 
 import Drawer from "../../components/Drawer";
-import Stepper from "../../components/Stepper";
-import snack from '../../store/snack';
-import leftDrawer from '../../store/leftDrawer';
-import bottomDrawer from '../../store/bottomDrawer';
 import bottomDrawerTools from '../../store/bottomDrawerTools';
-import app from '../../store/app';
-import * as R from "../../conf/RegExp";
-import * as utils from "../../utils";
-import base64 from "../../utils/base64";
-import * as md5 from "../../utils/md5";
 import AvatarButton, {images} from "./Avatar";
 import SliderButton from "./MenuSlider";
 import ColorPicker from "./MenuPickerColor";
 import MenuButton from "./MenuList";
-
-const _fs_ = window.require('fs'),
-  _path_ = window.require('path'),
-  electron = window.require("electron"),
-  remote = electron.remote;
-const ipc = electron.ipcRenderer;
 
 class Content extends Component {
   static propTypes = {

@@ -10,14 +10,11 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withStyles} from '@material-ui/core/styles';
-import Button from '@material-ui/core/Button';
-import Divider from '@material-ui/core/Divider';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 
 import Drawer from "../../components/Drawer";
-import Stepper from "../../components/Stepper";
 import snack from '../../store/snack';
 import leftDrawer from '../../store/leftDrawer';
 import bottomDrawer from '../../store/bottomDrawer';
@@ -27,10 +24,6 @@ import * as R from "../../conf/RegExp";
 import * as utils from "../../utils";
 import base64 from "../../utils/base64";
 import * as md5 from "../../utils/md5";
-import AvatarButton, {images} from "./Avatar";
-import SliderButton from "./MenuSlider";
-import ColorPicker from "./MenuPickerColor";
-import MenuButton from "./MenuList";
 import ToolsBar from "./MenuToolsBar";
 import ToolsBarSetting from "./MenuToolsBarSetting";
 
@@ -68,6 +61,11 @@ class Content extends Component {
       },
       CONTENT: {}
     };
+    let bookCheck = setTimeout(() => {
+      if (window.confirm("当前阅读器未加载文章，是否退出?")) 
+        remote.getCurrentWindow().close();
+      }
+    , 5000);
     const setState = (name, data, s = () => {}) => {
         this.setState({
           [name]: data
@@ -94,6 +92,9 @@ class Content extends Component {
           .getCurrentWindow()
           .setTitle(title)
         setState("file", data, this.handleClickFile);
+        if (!!data) {
+          clearTimeout(bookCheck);
+        }
       }
     });
 
@@ -527,25 +528,6 @@ const styles = (theme) => {
     },
     toolsBar: {
       // overflowY: "visible"
-    },
-    toolsBarPaper: {
-      width: "50%",
-      margin: "auto",
-      borderWidth: 0,
-      textAlign: "center"
-    },
-    toolsBarListItem: {
-      textAlign: "center",
-      display: "inline-block"
-    },
-    button: {
-      margin: theme.spacing.unit,
-      backgroundColor: "rgba(0, 0, 0, 0)"
-    },
-    avatar: {
-      // margin: 10
-      width: 56,
-      height: 56
     }
   });
 }
