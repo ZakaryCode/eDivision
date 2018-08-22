@@ -194,11 +194,6 @@ class Content extends Component {
     }
   }
 
-  handleDirOpen = () => {
-    this.handleDrawerOpen("bottomOpen")(false);
-    this.handleDrawerOpen("leftOpen")(true);
-  }
-
   setSearchLabel = (element, label, index, height) => {
     let spanLabel = (element, label, index) => {
       element = element.split(label);
@@ -485,7 +480,6 @@ class Content extends Component {
             fileL={fileData.length}
             fileIndex={fileIndex}
             handleSwitchPage={this.handleSwitchPage}
-            handleDirOpen={this.handleDirOpen}
             handleRadio={this.handleRadio}
             handleClickFile={this.handleClickFile}
             handlePageStyle={this.handlePageStyle}

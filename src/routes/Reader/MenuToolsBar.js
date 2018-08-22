@@ -28,7 +28,6 @@ class Content extends Component {
     fileL: PropTypes.number.isRequired,
     fileIndex: PropTypes.number.isRequired,
     handleSwitchPage: PropTypes.func.isRequired,
-    handleDirOpen: PropTypes.func.isRequired,
     handleRadio: PropTypes.func.isRequired,
     handleClickFile: PropTypes.func.isRequired,
     handleDrawerOpen: PropTypes.func.isRequired,
@@ -41,6 +40,15 @@ class Content extends Component {
       fileIndex: 0,
       bottomOpen: bottomDrawer.open
     };
+  }
+
+  handleDirOpen = () => {
+    this
+      .props
+      .handleDrawerOpen("bottomOpen")(false);
+    this
+      .props
+      .handleDrawerOpen("leftOpen")(true);
   }
 
   handleToolsBarOpen = () => {
@@ -66,14 +74,7 @@ class Content extends Component {
 
   render() {
     const {classes, fileL, fileIndex} = this.props;
-    const {
-      handleDrawerOpen,
-      handleSwitchPage,
-      handleDirOpen,
-      handleRadio,
-      handleClickFile,
-      bottomOpen
-    } = this.props;
+    const {handleDrawerOpen, handleSwitchPage, handleRadio, handleClickFile, bottomOpen} = this.props;
     // console.log(bottomOpen);
 
     return (
@@ -91,7 +92,7 @@ class Content extends Component {
             <ListItem className={classes.toolsBarListItem}>
               {fileL <= 1
                 ? null
-                : <Button color="primary" onClick={handleDirOpen}>
+                : <Button color="primary" onClick={this.handleDirOpen}>
                   目录
                 </Button>}
               <Button color="primary" onClick={handleRadio}>
