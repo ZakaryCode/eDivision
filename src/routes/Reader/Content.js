@@ -122,7 +122,7 @@ class Content extends Component {
         default:
           break;
       }
-      console.log("pageIndex", this, pageIndex);
+      console.log("pageIndex", this.state.pageIndex);
     });
   }
 

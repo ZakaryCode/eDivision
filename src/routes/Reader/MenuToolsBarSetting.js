@@ -80,7 +80,7 @@ class Content extends Component {
                 max={128}
                 value={pageStyles.fontSize}
                 handleSwitch={(event, value) => {
-                handlePageStyle("fontSizefontSize")(value);
+                handlePageStyle("fontSize")(value);
               }}/>
               <SliderButton
                 name={`行间距 ${pageStyles.verticalSpacing}`}
@@ -89,16 +89,15 @@ class Content extends Component {
                 value={pageStyles.verticalSpacing}
                 handleSwitch={(event, value) => {
                 handlePageStyle("verticalSpacing")(value);
-              }}/> {/* <ColorPicker
-                    name={`字色 ${pageStyles.color}`}
-                    min={1}
-                    max={128}
-                    value={pageStyles.color}
-                    handleSwitch={(event, value) => {
-                    let pageStyles = this.state.pageStyles;
-                    pageStyles.color = value;
-                    this.setState({pageStyles});
-                  }}/> */}
+              }}/>
+              <ColorPicker
+                name={`字色 ${pageStyles.color}`}
+                min={1}
+                max={128}
+                value={pageStyles.color}
+                handleSwitch={(event, value) => {
+                handlePageStyle("color")(value);
+              }}/>
             </ListItem>
           </List>
         </div>

@@ -44,8 +44,12 @@ class Content extends Component {
   }
 
   handleToolsBarOpen = () => {
-    this.handleDrawerOpen("bottomOpen")(false);
-    this.handleDrawerOpen("bottomOpenSetting")(true);
+    this
+      .props
+      .handleDrawerOpen("bottomOpen")(false);
+    this
+      .props
+      .handleDrawerOpen("bottomOpenSetting")(true);
   }
 
   handleMinimize = () => {

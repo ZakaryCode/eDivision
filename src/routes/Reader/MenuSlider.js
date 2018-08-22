@@ -16,7 +16,7 @@ class Content extends Component {
     max: PropTypes.number.isRequired,
     min: PropTypes.number.isRequired,
     value: PropTypes.number.isRequired,
-    onChange: PropTypes.func.isRequired
+    handleSwitch: PropTypes.func.isRequired
   };
   button = null;
 
@@ -72,7 +72,7 @@ class Content extends Component {
                   <MenuItem
                     style={{
                     display: 'flex',
-                    height: 300
+                    minHeight: 300
                   }}>
                     <Slider
                       max={max}
@@ -84,7 +84,7 @@ class Content extends Component {
                       reverse
                       style={{
                       display: 'flex',
-                      height: 300
+                      minHeight: 300
                     }}/>
                   </MenuItem>
                 </ClickAwayListener>

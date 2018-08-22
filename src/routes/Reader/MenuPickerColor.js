@@ -7,17 +7,15 @@ import Grow from '@material-ui/core/Grow';
 import MenuItem from '@material-ui/core/MenuItem';
 import Paper from '@material-ui/core/Paper';
 import Popper from '@material-ui/core/Popper';
-import Slider from '@material-ui/lab/Slider';
+import Typography from '@material-ui/core/Typography';
 import ColorPicker from '@mapbox/react-colorpickr';
 
 class Content extends Component {
   static propTypes = {
     classes: PropTypes.object.isRequired,
     name: PropTypes.string.isRequired,
-    max: PropTypes.number.isRequired,
-    min: PropTypes.number.isRequired,
     value: PropTypes.number.isRequired,
-    onChange: PropTypes.func.isRequired
+    handleSwitch: PropTypes.func.isRequired
   };
   button = null;
 
@@ -35,19 +33,14 @@ class Content extends Component {
   };
 
   handleChange = (color) => {
-    console.log(color);
-    this.setState({anchorEl: null});
+    console.log("color", color);
+    this
+      .props
+      .handleSwitch(color);
   }
 
   render() {
-    const {
-      classes,
-      name,
-      max,
-      min,
-      value,
-      handleSwitch
-    } = this.props;
+    const {classes, name, value} = this.props;
     const {anchorEl} = this.state;
 
     return (
@@ -77,10 +70,17 @@ class Content extends Component {
                 <ClickAwayListener onClickAway={() => {}}>
                   <MenuItem
                     style={{
-                    display: 'flex',
-                    height: 300
+                    display: "flex",
+                    position: "relative",
+                    minHeight: 350
                   }}>
-                    <ColorPicker onChange={this.handleChange}/>
+                    <ColorPicker value={value} onChange={this.handleChange}/>
+                  </MenuItem>
+                  <MenuItem onClick={this.handleClose}>
+                    <Typography
+                      style={{
+                      margin: "auto"
+                    }}>确定</Typography>
                   </MenuItem>
                 </ClickAwayListener>
               </Paper>
