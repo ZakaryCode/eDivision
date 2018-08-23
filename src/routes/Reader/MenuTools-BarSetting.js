@@ -17,9 +17,9 @@ import ListItem from '@material-ui/core/ListItem';
 import Drawer from "../../components/Drawer";
 import bottomDrawerTools from '../../store/bottomDrawerTools';
 import AvatarButton, {images} from "./Avatar";
-import SliderButton from "./MenuSlider";
-import ColorPicker from "./MenuPickerColor";
-import MenuButton from "./MenuList";
+import SliderButton from "./Menu-Slider";
+import ColorPicker from "./Menu-PickerColor";
+import MenuButton from "./Menu-List";
 
 class Content extends Component {
   static propTypes = {

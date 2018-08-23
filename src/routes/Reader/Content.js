@@ -24,8 +24,8 @@ import * as R from "../../conf/RegExp";
 import * as utils from "../../utils";
 import base64 from "../../utils/base64";
 import * as md5 from "../../utils/md5";
-import ToolsBar from "./MenuToolsBar";
-import ToolsBarSetting from "./MenuToolsBarSetting";
+import ToolsBar from "./MenuTools-Bar";
+import ToolsBarSetting from "./MenuTools-BarSetting";
 
 const _fs_ = window.require('fs'),
   _path_ = window.require('path'),
