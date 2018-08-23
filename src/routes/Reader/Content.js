@@ -60,7 +60,8 @@ class Content extends Component {
         fontFamily: "Arial,Verdana,Sans-serif",
         verticalSpacing: 1
       },
-      CONTENT: {}
+      CONTENT: {},
+      displayMode: 1
     };
     let bookCheck = setTimeout(() => {
       if (window.confirm("当前阅读器未加载文章，是否退出?")) 
@@ -101,6 +102,7 @@ class Content extends Component {
 
     document.addEventListener('keyup', (e) => {
       const {leftOpen, bottomOpen, bottomOpenSetting, handleClickFile} = this.state;
+      const mode = this.state.displayMode;
       if (leftOpen || bottomOpen || bottomOpenSetting || handleClickFile) 
         return;
       let pageIndex = this.state.pageIndex,
@@ -108,20 +110,24 @@ class Content extends Component {
         pageScrollHeight = this.countLines(2);
       switch (Number(e.keyCode)) {
         case 37:
-          if (pageIndex - pageHeight >= 0) {
-            pageIndex -= pageHeight;
-            setState("pageIndex", pageIndex);
-          } else {
-            this.handleSwitchPage(0)();
-          }
+          if (mode === 1) {
+            if (pageIndex - pageHeight >= 0) {
+              pageIndex -= pageHeight;
+              setState("pageIndex", pageIndex);
+            } else {
+              this.handleSwitchPage(0)();
+            }
+          } else if (mode === 2) {}
           break;
         case 39:
-          if (pageScrollHeight >= pageHeight * 2 + pageIndex) {
-            pageIndex += pageHeight;
-            setState("pageIndex", pageIndex);
-          } else {
-            this.handleSwitchPage(1)();
-          }
+          if (mode === 1) {
+            if (pageScrollHeight >= pageHeight * 2 + pageIndex) {
+              pageIndex += pageHeight;
+              setState("pageIndex", pageIndex);
+            } else {
+              this.handleSwitchPage(1)();
+            }
+          } else if (mode === 2) {}
           break;
         default:
           break;
@@ -330,7 +336,7 @@ class Content extends Component {
     });
   };
 
-  countLines = (type = 1) => { // type: 0=countLines 1=pageHeight 2=scrollHeight
+  countLines = (mode = 1) => { // mode: 0=countLines 1=pageHeight 2=scrollHeight
     const {pageStyles} = this.state;
     const {CONTENT, BOOK_CONTENT} = this.state.CONTENT;
     if (!CONTENT || !BOOK_CONTENT) {
@@ -340,7 +346,7 @@ class Content extends Component {
       h = parseInt(CONTENT.offsetHeight - margin * 2, 10),
       lc = parseInt(h / lh, 10);
     console.log('line count:', lc, 'line-height:', lh, 'height:', h);
-    switch (type) {
+    switch (mode) {
       case 0:
         return lc;
       case 1:
@@ -383,7 +389,8 @@ class Content extends Component {
     console.log(leftOpen, bottomOpen, bottomOpenSetting);
     const BOOK_CONTENT_HEIGHT = this.countLines(1),
       BOOK_CONTENT_SCROLL_HEIGHT = this.countLines(2),
-      BookContentDiv = (h, mode = 1) => { // mode: 1=dom 2=canvas
+      BookContentDiv = (h) => { // mode: 1=dom 2=canvas
+        const mode = this.state.displayMode;
         if (BOOK_CONTENT) {
           const p = (fileData[fileIndex] || "").split(R.newline);
           BOOK_CONTENT.scrollTop = (this.state.pageIndex + BOOK_CONTENT_HEIGHT > BOOK_CONTENT_SCROLL_HEIGHT
