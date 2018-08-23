@@ -61,6 +61,16 @@ class Content extends Component {
       .handleDrawerOpen("bottomOpenSetting")(true);
   }
 
+  handleRadioBarOpen = () => {
+    this
+      .props
+      .handleDrawerOpen("bottomOpen")(false);
+    this
+      .props
+      .handleDrawerOpen("bottomOpenRadio")(true);
+    this.handleRadio();
+  }
+
   handleMinimize = () => {
     remote
       .getCurrentWindow()

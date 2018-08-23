@@ -19,6 +19,7 @@ import snack from '../../store/snack';
 import leftDrawer from '../../store/leftDrawer';
 import bottomDrawer from '../../store/bottomDrawer';
 import bottomDrawerTools from '../../store/bottomDrawerTools';
+import bottomDrawerRadio from '../../store/bottomDrawerRadio';
 import app from '../../store/app';
 import * as R from "../../conf/RegExp";
 import * as utils from "../../utils";
@@ -26,6 +27,7 @@ import base64 from "../../utils/base64";
 import * as md5 from "../../utils/md5";
 import ToolsBar from "./MenuTools-Bar";
 import ToolsBarSetting from "./MenuTools-BarSetting";
+import ToolsBarRadio from "./MenuTools-Radio";
 
 const _fs_ = window.require('fs'),
   _path_ = window.require('path'),
@@ -50,9 +52,11 @@ class Content extends Component {
       fileIndex: 0,
       pageIndex: 0,
       radioIndex: 0,
+      radioStatus: false,
       leftOpen: leftDrawer.open,
       bottomOpen: bottomDrawer.open,
       bottomOpenSetting: bottomDrawerTools.open,
+      bottomOpenRadio: bottomDrawerRadio.open,
       pageStyles: {
         color: "#000000",
         backgroundColor: "#FFFFFF",
@@ -101,9 +105,9 @@ class Content extends Component {
     });
 
     document.addEventListener('keyup', (e) => {
-      const {leftOpen, bottomOpen, bottomOpenSetting, handleClickFile} = this.state;
+      const {leftOpen, bottomOpen, bottomOpenSetting, bottomOpenRadio, handleClickFile} = this.state;
       const mode = this.state.displayMode;
-      if (leftOpen || bottomOpen || bottomOpenSetting || handleClickFile) 
+      if (leftOpen || bottomOpen || bottomOpenSetting || bottomOpenRadio || handleClickFile) 
         return;
       let pageIndex = this.state.pageIndex,
         pageHeight = this.countLines(1),
@@ -176,25 +180,31 @@ class Content extends Component {
     if (name === "bottomOpenSetting") {
       bottomDrawerTools.isOpen(open);
     }
+    if (name === "bottomOpenRadio") {
+      bottomDrawerRadio.isOpen(open);
+    }
   };
 
   handleMouseMove = i => e => {
-    const {BOOK_CATALOG, TOOLS_BAR, TOOLS_BAR_SETTING} = this.state.CONTENT, {leftOpen, bottomOpen, bottomOpenSetting} = this.state,
+    const {BOOK_CATALOG, TOOLS_BAR, TOOLS_BAR_SETTING, TOOLS_BAR_RADIO} = this.state.CONTENT, {leftOpen, bottomOpen, bottomOpenSetting, bottomOpenRadio} = this.state,
       CATALOG = BOOK_CATALOG.children[0].children[0],
       TOOLSBAR = TOOLS_BAR.children[0].children[0],
-      TOOLSBARSETTING = TOOLS_BAR_SETTING.children[0].children[0];
+      TOOLSBARSETTING = TOOLS_BAR_SETTING.children[0].children[0],
+      TOOLSBARRADIO = TOOLS_BAR_RADIO.children[0].children[0];
     if (i === 1 && !this.state.handleMenuBarControlCall) {
-      console.log(leftOpen, bottomOpen, bottomOpenSetting, CATALOG.offsetLeft + CATALOG.offsetWidth + 10, e.clientX, TOOLSBAR.offsetTop - TOOLSBAR.offsetHeight - 10, e.clientY);
+      console.log(leftOpen, bottomOpen, bottomOpenSetting, bottomOpenRadio, CATALOG.offsetLeft + CATALOG.offsetWidth + 10, e.clientX, TOOLSBAR.offsetTop - TOOLSBAR.offsetHeight - 10, e.clientY);
       if (leftOpen && CATALOG.offsetLeft + CATALOG.offsetWidth + 10 <= e.clientX) {
         this.handleDrawerOpen("leftOpen")(false);
       } else if (bottomOpenSetting && TOOLSBARSETTING.offsetTop >= e.clientY) {
         this.handleDrawerOpen("bottomOpenSetting")(false);
+      } else if (bottomOpenRadio && TOOLSBARRADIO.offsetTop >= e.clientY) {
+        this.handleDrawerOpen("bottomOpenRadio")(false);
       }
     } else {
       if (CATALOG.offsetLeft + CATALOG.offsetWidth + 10 > e.clientX && !leftOpen) {
         // console.log("打开目录", CATALOG.offsetLeft + CATALOG.offsetWidth + 10,
         // e.clientX); this.handleDrawerOpen("leftOpen")(true);
-      } else if (!bottomOpen && !bottomOpenSetting && !leftOpen && TOOLSBAR.offsetTop - 10 < e.clientY) {
+      } else if (!bottomOpen && !bottomOpenSetting && !bottomOpenRadio && !leftOpen && TOOLSBAR.offsetTop - 10 < e.clientY) {
         // console.log("打开工具栏", TOOLSBAR.offsetTop - 10, e.clientY);
         this.handleDrawerOpen("bottomOpen")(true);
       } else if (bottomOpen && TOOLSBAR.offsetTop - 10 >= e.clientY) {
@@ -256,7 +266,7 @@ class Content extends Component {
     this.setState({pageStyles});
   }
 
-  handleSwitchPage = flag => (count) => {
+  handleSwitchPage = flag => (count, callback) => {
     let i;
     if (flag === 2) {
       i = count;
@@ -272,7 +282,15 @@ class Content extends Component {
       snack.setMessage("已经是第一章了!");
       return;
     }
-    this.setState({fileIndex: i, pageIndex: 0});
+    this.setState({
+      fileIndex: i,
+      pageIndex: 0,
+      radioIndex: 0
+    }, () => {
+      if (typeof callback === "function") 
+        callback();
+      }
+    );
   }
 
   handleMenuBarControl = (open) => {
@@ -284,12 +302,21 @@ class Content extends Component {
     }, 10);
   }
 
+  handleRadioBar = () => {
+    this.setState({radioStatus: true});
+  }
+
   handleRadio = () => {
-    let URL = "http://api.xfyun.cn/v1/service/v1/tts",
+    const URL = "http://api.xfyun.cn/v1/service/v1/tts",
       AUE = "raw",
       APPID = "5b680059",
-      API_KEY = "258e2e2b381581eed5fa2e7ac07628f7";
-    let getHeader = () => {
+      API_KEY = "258e2e2b381581eed5fa2e7ac07628f7", {fileData, fileIndex, radioIndex} = this.state,
+      setState = (name, data, s = () => {}) => {
+        this.setState({
+          [name]: data
+        }, s);
+      },
+      getHeader = () => {
         let curTime = "" + parseInt(new Date().getTime() / 1000, 10),
           param = {
             auf: "audio/L16;rate=16000",
@@ -310,13 +337,34 @@ class Content extends Component {
           }
         return header;
       },
-      getBody = (text) => {
-        let data = {
-          text: text
+      getBody = () => {
+        const paragraphs = (fileData[fileIndex] || "").split(R.newline),
+          paragraphsL = paragraphs.length,
+          paragraph = (paragraphs[radioIndex] || "").replace(R.redundancy, "");
+        let data = {};
+        if (paragraphsL < radioIndex) {
+          // 本章读完，切换下一章
+          this.handleSwitchPage(1)(null, () => {
+            setState("radioStatus", true);
+          });
+        } else if (paragraph) {
+          // 段落存在，开始阅读
+          data = {
+            text: paragraph
+          }
+          return utils.json2Form(data);
+        } else {
+          // 段落不存在，切换下一段落
+          setState("radioIndex", radioIndex + 1);
+          setState("radioStatus", true);
         }
-        return utils.json2Form(data);
-      };
-    ipc.send('get-xfyun-radio', AUE, URL, getHeader(), getBody("科大讯飞是中国最大的智能语音技术提供商"));
+      },
+      BODY_TEXT = getBody();
+    if (!BODY_TEXT) {
+      return;
+    }
+    // alert(BODY_TEXT);
+    ipc.send('get-xfyun-radio', AUE, URL, getHeader(), BODY_TEXT);
     ipc.on("return-xfyun-radio", (event, data) => {
       console.log(event, data);
       let source = audioCtx.createBufferSource(),
@@ -326,9 +374,17 @@ class Content extends Component {
         source.connect(audioCtx.destination);
         source.loop = false;
         source.start(0);
+        // source.stop(0);
       }, function (e) {
         console.log("Error with decoding audio data" + e.err);
       });
+      source.onended = function (event) {
+        // 主动停止，跳出 素材
+        console.log("audioCtx.onended", event);
+        // 阅读完毕，向下跳转
+        setState("radioIndex", radioIndex + 1);
+        setState("radioStatus", true);
+      }
     });
     ipc.on("return-xfyun-radio-error", (event, data) => {
       console.log(event, data);
@@ -384,9 +440,9 @@ class Content extends Component {
   render() {
     const {classes} = this.props;
     const {fileData, fileIndex} = this.state;
-    const {leftOpen, bottomOpen, bottomOpenSetting, pageStyles} = this.state;
+    const {leftOpen, bottomOpen, bottomOpenSetting, bottomOpenRadio, pageStyles} = this.state;
     const {BOOK_CONTENT} = this.state.CONTENT;
-    console.log(leftOpen, bottomOpen, bottomOpenSetting);
+    console.log(leftOpen, bottomOpen, bottomOpenSetting, bottomOpenRadio);
     const BOOK_CONTENT_HEIGHT = this.countLines(1),
       BOOK_CONTENT_SCROLL_HEIGHT = this.countLines(2),
       BookContentDiv = (h) => { // mode: 1=dom 2=canvas
@@ -434,6 +490,11 @@ class Content extends Component {
           }
         }
       };
+    if (this.state.radioStatus) {
+      this.setState({
+        radioStatus: false
+      }, this.handleRadio);
+    }
 
     return (
       <div
@@ -500,7 +561,7 @@ class Content extends Component {
             fileL={fileData.length}
             fileIndex={fileIndex}
             handleSwitchPage={this.handleSwitchPage}
-            handleRadio={this.handleRadio}
+            handleRadio={this.handleRadioBar}
             handleClickFile={this.handleClickFile}
             handleMenuBarControl={this.handleMenuBarControl}
             handleDrawerOpen={this.handleDrawerOpen}
@@ -515,6 +576,14 @@ class Content extends Component {
             handleMenuBarControl={this.handleMenuBarControl}
             handleDrawerOpen={this.handleDrawerOpen}
             bottomOpenSetting={bottomOpenSetting}/>
+        </div>
+        <div className={classes.toolsBar} ref={this.handleInputRef("TOOLS_BAR_RADIO")}>
+          <ToolsBarRadio
+            pageStyles={pageStyles}
+            handlePageStyle={this.handlePageStyle}
+            handleMenuBarControl={this.handleMenuBarControl}
+            handleDrawerOpen={this.handleDrawerOpen}
+            bottomOpenRadio={bottomOpenRadio}/>
         </div>
       </div>
     );
