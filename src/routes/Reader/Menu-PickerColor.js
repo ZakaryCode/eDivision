@@ -8,7 +8,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import Paper from '@material-ui/core/Paper';
 import Popper from '@material-ui/core/Popper';
 import Typography from '@material-ui/core/Typography';
-import ColorPicker from 'rc-color-picker';
+// import ColorPicker from 'rc-color-picker';
 import {Panel as ColorPickerPanel} from 'rc-color-picker';
 import 'rc-color-picker/assets/index.css';
 
@@ -84,18 +84,22 @@ class Content extends Component {
             }}>
               <Paper>
                 <ClickAwayListener onClickAway={this.handleClose}>
-                  <MenuItem
+                  {/* <MenuItem
                     style={{
                     display: "initial",
                     position: "relative",
                     minHeight: 247
-                  }}>
+                  }}
+                    selected={false}
+                    classes={{
+                    selected: {}
+                  }}> */}
                     <ColorPickerPanel
                       enableAlpha={hasAlpha || false}
                       color={value}
                       onChange={this.handleChange}
                       mode="RGB"/>
-                  </MenuItem>
+                  {/* </MenuItem> */}
                   <MenuItem onClick={this.handleClose}>
                     <Typography
                       style={{
