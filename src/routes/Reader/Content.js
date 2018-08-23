@@ -55,6 +55,7 @@ class Content extends Component {
       bottomOpenSetting: bottomDrawerTools.open,
       pageStyles: {
         color: "#000000",
+        backgroundColor: "#FFFFFF",
         fontSize: 16,
         fontFamily: "Arial,Verdana,Sans-serif",
         verticalSpacing: 1

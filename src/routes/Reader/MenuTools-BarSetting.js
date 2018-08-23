@@ -96,11 +96,17 @@ class Content extends Component {
                 handleMenuBarControl={this.props.handleMenuBarControl}/>
               <ColorPicker
                 name={`字色 ${pageStyles.color}`}
-                min={1}
-                max={128}
                 value={pageStyles.color}
-                handleSwitch={(event, value) => {
+                handleSwitch={(value) => {
                 handlePageStyle("color")(value);
+              }}
+                handleMenuBarControl={this.props.handleMenuBarControl}/>
+              <ColorPicker
+                name={`背景色 ${pageStyles.backgroundColor}`}
+                value={pageStyles.backgroundColor}
+                hasAlpha={true}
+                handleSwitch={(value) => {
+                handlePageStyle("backgroundColor")(value);
               }}
                 handleMenuBarControl={this.props.handleMenuBarControl}/>
             </ListItem>
