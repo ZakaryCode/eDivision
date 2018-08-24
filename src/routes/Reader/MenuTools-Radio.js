@@ -18,6 +18,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
 import PauseIcon from '@material-ui/icons/Pause';
 import StopIcon from '@material-ui/icons/Stop';
+import KeyboardReturnIcon from '@material-ui/icons/KeyboardReturn';
 import SkipPreviousIcon from '@material-ui/icons/SkipPrevious';
 import SkipNextIcon from '@material-ui/icons/SkipNext';
 import VolumeUpIcon from '@material-ui/icons/VolumeUp';
@@ -27,160 +28,247 @@ import VolumeOffIcon from '@material-ui/icons/VolumeOff';
 import SvgIcon from '@material-ui/core/SvgIcon';
 
 import Drawer from "../../components/Drawer";
+import Stepper from "../../components/Stepper";
 import bottomDrawerTools from '../../store/bottomDrawerTools';
 import SliderButton from "./Menu-Slider";
 
 const ResumeIcon = (props) => {
-  return (
-    <SvgIcon {...props}>
-      <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
-    </SvgIcon>
-  );
-}
-
-class Content extends Component {
-  static propTypes = {
-    classes: PropTypes.object.isRequired,
-    radioControl: PropTypes.object.isRequired,
-    handleRadioControl: PropTypes.func.isRequired,
-    handleMenuBarControl: PropTypes.func.isRequired,
-    handleDrawerOpen: PropTypes.func.isRequired,
-    bottomOpenRadio: PropTypes.bool.isRequired
-  };
-  constructor(props) {
-    super(props);
-    this.state = {
-      bottomOpenRadio: bottomDrawerTools.open
-    };
-  }
-
-  render() {
-    const {classes, radioControl} = this.props;
-    const {handleDrawerOpen, handleRadioControl, bottomOpenRadio} = this.props;
-    // console.log("getVolumeIcon",classes);
-    const getVolumeIcon = (volume) => {
-      if (radioControl.hasVolume) {
-        if (volume <= 0) {
-          return <VolumeMuteIcon/>
-        } else if (volume <= 50) {
-          return <VolumeDownIcon/>
-        } else {
-          return <VolumeUpIcon/>
-        }
-      } else {
-        return <VolumeOffIcon/>
-      }
-    }
-
     return (
-      <Drawer
-        anchor="bottom"
-        open={bottomOpenRadio}
-        className={classes.toolsBarPaper}
-        handleDrawerOpen={handleDrawerOpen("bottomOpenRadio")}>
-        <div>
-          <List>
-            <ListItem
-              className={classes.toolsBarListItem}
-              style={{
-              display: "flex"
-            }}>
-              <Tooltip title="播放">
-                <IconButton size="large" onClick={() => {}}>
-                  <PlayArrowIcon
-                    style={{
-                    fontSize: '-webkit-xxx-large'
-                  }}/>
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="暂停">
-                <IconButton size="medium" onClick={() => {}}>
-                  <PauseIcon/>
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="恢复">
-                <IconButton onClick={() => {}}>
-                  <ResumeIcon/>
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="停止">
-                <IconButton onClick={() => {}}>
-                  <StopIcon/>
-                </IconButton>
-              </Tooltip>
-            </ListItem>
-            <Divider/>
-            <ListItem
-              className={classes.toolsBarListItem}
-              style={{
-              display: "flex"
-            }}>
-              <SliderButton
-                name={`语速 ${radioControl.speed}`}
-                min={0}
-                max={100}
-                value={radioControl.speed}
-                handleSwitch={(event, value) => {
-                handleRadioControl("speed")(value);
-              }}
-                handleMenuBarControl={this.props.handleMenuBarControl}/>
-              <SliderButton
-                name={`音量 ${radioControl.volume}`}
-                min={0}
-                max={100}
-                value={radioControl.volume}
-                handleSwitch={(event, value) => {
-                handleRadioControl("volume")(value);
-              }}
-                handleMenuBarControl={this.props.handleMenuBarControl}>
-                <IconButton
-                  style={{
-                  position: "absolute",
-                  bottom: 2,
-                  left: `calc((100% - 48px) / 2)`
-                }}
-                  onClick={() => {
-                  handleRadioControl("hasVolume")(!radioControl.hasVolume)
-                }}
-                  parentItemStyle={{
-                  paddingBottom: 52
-                }}>
-                  {getVolumeIcon(radioControl.volume)}
-                </IconButton>
-              </SliderButton>
-              <SliderButton
-                name={`音高 ${radioControl.pitch}`}
-                min={0}
-                max={100}
-                value={radioControl.pitch}
-                handleSwitch={(event, value) => {
-                handleRadioControl("pitch")(value);
-              }}
-                handleMenuBarControl={this.props.handleMenuBarControl}/>
-            </ListItem>
-          </List>
-        </div>
-      </Drawer>
+      <SvgIcon {...props} viewBox="-60 -60 340 340">
+        <rect
+          stroke="#000"
+          id="resume_1"
+          height="200"
+          width="35"
+          y="10"
+          x="20"
+          fill-opacity="null"
+          stroke-opacity="null"
+          stroke-width="1.5"
+          fill="#000000"/>
+        <path
+          stroke="#000"
+          transform="rotate(-135 99.5,109.5)"
+          id="resume_2"
+          d="m16,193l27,-167l140,139l-166,28l-1,0z"
+          stroke-opacity="null"
+          stroke-width="2"
+          fill="#000000"/>
+      </SvgIcon>
     );
+  },
+  ICON = {
+    PlayArrow: PlayArrowIcon,
+    Pause: PauseIcon,
+    Resume: ResumeIcon,
+    Stop: StopIcon,
+    KeyboardReturn: KeyboardReturnIcon,
+    SkipPrevious: SkipPreviousIcon,
+    SkipNext: SkipNextIcon,
+    VolumeUp: VolumeUpIcon,
+    VolumeDown: VolumeDownIcon,
+    VolumeMute: VolumeMuteIcon,
+    VolumeOff: VolumeOffIcon
+  },
+  IconB = (props) => {
+    const {title, size, onClick, iconName} = props;
+    const IconL = ICON[iconName];
+    return <div style={{}}>
+      <Tooltip title={title}>
+        <IconButton size={size} onClick={onClick}>
+          <IconL {...props}/>
+        </IconButton>
+      </Tooltip>
+    </div>
   }
-}
 
-const styles = (theme) => {
-  return ({
-    toolsBarPaper: {
-      width: "50%",
-      margin: "auto",
-      borderWidth: 0,
-      textAlign: "center"
-    },
-    toolsBarListItem: {
-      textAlign: "center",
-      display: "inline-block"
-    },
-    button: {
-      margin: theme.spacing.unit
+  class Content extends Component {
+    static propTypes = {
+      classes: PropTypes.object.isRequired,
+      fileL: PropTypes.number.isRequired,
+      fileIndex: PropTypes.number.isRequired,
+      handleSwitchPage: PropTypes.func.isRequired,
+      radioIndex: PropTypes.number.isRequired,
+      radioControl: PropTypes.object.isRequired,
+      handleRadioControl: PropTypes.func.isRequired,
+      handleMenuBarControl: PropTypes.func.isRequired,
+      handleDrawerOpen: PropTypes.func.isRequired,
+      bottomOpenRadio: PropTypes.bool.isRequired
+    };
+    constructor(props) {
+      super(props);
+      this.state = {
+        bottomOpenRadio: bottomDrawerTools.open
+      };
     }
-  });
-}
 
-export default withStyles(styles)(Content);
+    render() {
+      const {classes, fileL, fileIndex, radioIndex, radioControl} = this.props;
+      const {handleDrawerOpen, handleSwitchPage, handleRadioControl, bottomOpenRadio} = this.props;
+      // console.log("getVolumeIcon", classes);
+      const getVolumeIcon = (volume) => {
+        if (radioControl.hasVolume) {
+          if (volume <= 0) {
+            return <ICON.VolumeMute/>
+          } else if (volume <= 50) {
+            return <ICON.VolumeDown/>
+          } else {
+            return <ICON.VolumeUp/>
+          }
+        } else {
+          return <ICON.VolumeOff/>
+        }
+      }
+
+      return (
+        <Drawer
+          anchor="bottom"
+          open={bottomOpenRadio}
+          className={classes.toolsBarPaper}
+          handleDrawerOpen={handleDrawerOpen("bottomOpenRadio")}>
+          <div>
+            <List>
+              <ListItem className={classes.toolsBarListItem}>
+                <Stepper start={0} count={fileL} steps={fileIndex} onSwitch={handleSwitchPage}/>
+              </ListItem>
+              <Divider/>
+              <ListItem
+                className={classes.toolsBarListItem}
+                style={{
+                margin: "auto"
+              }}>
+                <div style={{
+                  display: "inline-flex"
+                }}>
+                  <IconB
+                    title="退出"
+                    onClick={() => {
+                    handleDrawerOpen("bottomOpenRadio")(false);
+                  }}
+                    iconName="KeyboardReturn"
+                    style={{
+                    color: "#000"
+                  }}/>
+                  <IconB
+                    title="快退"
+                    onClick={() => {}}
+                    iconName="SkipPrevious"
+                    style={{
+                    color: "#000"
+                  }}/> {radioControl.isPlaying
+                    ? <IconB
+                        title="暂停"
+                        onClick={() => {}}
+                        iconName="Pause"
+                        style={{
+                        fontSize: '-webkit-xxx-large',
+                        color: "#000"
+                      }}/>
+                    : (!radioIndex
+                      ? <IconB
+                          title="播放"
+                          onClick={() => {}}
+                          iconName="PlayArrow"
+                          style={{
+                          fontSize: '-webkit-xxx-large',
+                          color: "#000"
+                        }}/>
+                      : <IconB
+                        title="恢复"
+                        onClick={() => {}}
+                        iconName="Resume"
+                        style={{
+                        fontSize: '-webkit-xxx-large',
+                        color: "#000"
+                      }}/>)}
+                  <IconB
+                    title="停止"
+                    onClick={() => {}}
+                    iconName="Stop"
+                    style={{
+                    color: "#000"
+                  }}/>
+                  <IconB
+                    title="快进"
+                    onClick={() => {}}
+                    iconName="SkipNext"
+                    style={{
+                    color: "#000"
+                  }}/>
+                </div>
+              </ListItem>
+              <Divider/>
+              <ListItem
+                className={classes.toolsBarListItem}
+                style={{
+                display: "flex"
+              }}>
+                <SliderButton
+                  name={`语速 ${radioControl.speed}`}
+                  min={0}
+                  max={100}
+                  value={radioControl.speed}
+                  handleSwitch={(event, value) => {
+                  handleRadioControl("speed")(value);
+                }}
+                  handleMenuBarControl={this.props.handleMenuBarControl}/>
+                <SliderButton
+                  name={`音量 ${radioControl.volume}`}
+                  min={0}
+                  max={100}
+                  value={radioControl.volume}
+                  handleSwitch={(event, value) => {
+                  handleRadioControl("volume")(value);
+                }}
+                  handleMenuBarControl={this.props.handleMenuBarControl}>
+                  <IconButton
+                    style={{
+                    position: "absolute",
+                    bottom: 2,
+                    left: `calc((100% - 48px) / 2)`
+                  }}
+                    onClick={() => {
+                    handleRadioControl("hasVolume")(!radioControl.hasVolume)
+                  }}
+                    parentItemStyle={{
+                    paddingBottom: 52
+                  }}>
+                    {getVolumeIcon(radioControl.volume)}
+                  </IconButton>
+                </SliderButton>
+                <SliderButton
+                  name={`音高 ${radioControl.pitch}`}
+                  min={0}
+                  max={100}
+                  value={radioControl.pitch}
+                  handleSwitch={(event, value) => {
+                  handleRadioControl("pitch")(value);
+                }}
+                  handleMenuBarControl={this.props.handleMenuBarControl}/>
+              </ListItem>
+            </List>
+          </div>
+        </Drawer>
+      );
+    }
+  }
+
+  const styles = (theme) => {
+    return ({
+      toolsBarPaper: {
+        width: "50%",
+        margin: "auto",
+        borderWidth: 0,
+        textAlign: "center"
+      },
+      toolsBarListItem: {
+        textAlign: "center",
+        display: "inline-block"
+      },
+      button: {
+        margin: theme.spacing.unit
+      }
+    });
+  }
+
+  export default withStyles(styles)(Content);

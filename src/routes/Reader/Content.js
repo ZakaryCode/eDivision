@@ -78,7 +78,8 @@ class Content extends Component {
         speed: 50,
         volume: 50,
         hasVolume: true,
-        pitch: 50
+        pitch: 50,
+        isPlaying: false
       },
       CONTENT: {},
       displayMode: 1
@@ -214,7 +215,7 @@ class Content extends Component {
       } else if (bottomOpenSetting && TOOLSBARSETTING.offsetTop >= e.clientY) {
         this.handleDrawerOpen("bottomOpenSetting")(false);
       } else if (bottomOpenRadio && TOOLSBARRADIO.offsetTop >= e.clientY) {
-        this.handleDrawerOpen("bottomOpenRadio")(false);
+        // this.handleDrawerOpen("bottomOpenRadio")(false);
       }
     } else {
       if (CATALOG.offsetLeft + CATALOG.offsetWidth + 10 > e.clientX && !leftOpen) {
@@ -610,6 +611,7 @@ class Content extends Component {
         </div>
         <div className={classes.toolsBar} ref={this.handleInputRef("TOOLS_BAR_RADIO")}>
           <ToolsBarRadio
+            radioIndex={this.state.radioIndex}
             radioControl={radioControl}
             handleRadioControl={this.handleRadioControl}
             handleMenuBarControl={this.handleMenuBarControl}
