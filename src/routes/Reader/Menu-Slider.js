@@ -8,10 +8,13 @@ import MenuItem from '@material-ui/core/MenuItem';
 import Paper from '@material-ui/core/Paper';
 import Popper from '@material-ui/core/Popper';
 import Slider from '@material-ui/lab/Slider';
+import IconButton from '@material-ui/core/IconButton';
+import Tooltip from '@material-ui/core/Tooltip';
 
 class Content extends Component {
   static propTypes = {
     classes: PropTypes.object.isRequired,
+    parentItemStyle: PropTypes.object.isRequired,
     name: PropTypes.string.isRequired,
     max: PropTypes.number.isRequired,
     min: PropTypes.number.isRequired,
@@ -46,9 +49,21 @@ class Content extends Component {
       max,
       min,
       value,
-      handleSwitch
+      handleSwitch,
+      children
     } = this.props;
     const {anchorEl} = this.state;
+    const parentItemStyles = React
+      .Children
+      .map(children, child => child.props.parentItemStyle) || [];
+    let parentItemStyle = {};
+    parentItemStyles.forEach(e => {
+      parentItemStyle = {
+        parentItemStyle,
+        ...e
+      }
+    });
+    console.log(name, children, ...parentItemStyle);
 
     return (
       <div className={classes.root}>
@@ -78,7 +93,8 @@ class Content extends Component {
                   <MenuItem
                     style={{
                     display: 'flex',
-                    minHeight: 300
+                    minHeight: 300,
+                    ...parentItemStyle
                   }}>
                     <Slider
                       max={max}
@@ -91,7 +107,9 @@ class Content extends Component {
                       style={{
                       display: 'flex',
                       minHeight: 300
-                    }}/>
+                    }}/> {React
+                      .Children
+                      .map(children, child => child)}
                   </MenuItem>
                 </ClickAwayListener>
               </Paper>

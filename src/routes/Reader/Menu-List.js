@@ -179,7 +179,11 @@ class Content extends Component {
                         .font
                         .map(e1 => (
                           <li key={`section-${e1.value}`} className={classes.listSection}>
-                            <ul className={classes.ul}>
+                            <ul
+                              className={classes.ul}
+                              style={{
+                              padding: 0
+                            }}>
                               <ListSubheader>{e1.name}</ListSubheader>
                               {e1
                                 .list
@@ -189,6 +193,7 @@ class Content extends Component {
                                     onClick={this.handleToggle(e2.value)}
                                     dense
                                     button
+                                    disableGutters
                                     className={classes.listItem}>
                                     <Checkbox
                                       checked={checked.indexOf(e2.value) !== -1}

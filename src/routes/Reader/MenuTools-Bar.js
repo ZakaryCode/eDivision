@@ -68,7 +68,9 @@ class Content extends Component {
     this
       .props
       .handleDrawerOpen("bottomOpenRadio")(true);
-    this.handleRadio();
+    this
+      .props
+      .handleRadio();
   }
 
   handleMinimize = () => {
@@ -85,7 +87,7 @@ class Content extends Component {
 
   render() {
     const {classes, fileL, fileIndex} = this.props;
-    const {handleDrawerOpen, handleSwitchPage, handleRadio, handleClickFile, bottomOpen} = this.props;
+    const {handleDrawerOpen, handleSwitchPage, handleClickFile, bottomOpen} = this.props;
     // console.log(bottomOpen);
 
     return (
@@ -106,7 +108,7 @@ class Content extends Component {
                 : <Button color="primary" onClick={this.handleDirOpen}>
                   目录
                 </Button>}
-              <Button color="primary" onClick={handleRadio}>
+              <Button color="primary" onClick={this.handleRadioBarOpen}>
                 语音
               </Button>
               <Button color="primary" onClick={handleClickFile}>

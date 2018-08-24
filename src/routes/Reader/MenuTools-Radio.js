@@ -13,55 +13,101 @@ import {withStyles} from '@material-ui/core/styles';
 import Divider from '@material-ui/core/Divider';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
+import IconButton from '@material-ui/core/IconButton';
+import Tooltip from '@material-ui/core/Tooltip';
+import PlayArrowIcon from '@material-ui/icons/PlayArrow';
+import PauseIcon from '@material-ui/icons/Pause';
+import StopIcon from '@material-ui/icons/Stop';
+import SkipPreviousIcon from '@material-ui/icons/SkipPrevious';
+import SkipNextIcon from '@material-ui/icons/SkipNext';
+import VolumeUpIcon from '@material-ui/icons/VolumeUp';
+import VolumeDownIcon from '@material-ui/icons/VolumeDown';
+import VolumeMuteIcon from '@material-ui/icons/VolumeMute';
+import VolumeOffIcon from '@material-ui/icons/VolumeOff';
+import SvgIcon from '@material-ui/core/SvgIcon';
 
 import Drawer from "../../components/Drawer";
 import bottomDrawerTools from '../../store/bottomDrawerTools';
-import AvatarButton, {images} from "./Avatar";
 import SliderButton from "./Menu-Slider";
-import ColorPicker from "./Menu-PickerColor";
-import MenuButton from "./Menu-List";
+
+const ResumeIcon = (props) => {
+  return (
+    <SvgIcon {...props}>
+      <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+    </SvgIcon>
+  );
+}
 
 class Content extends Component {
   static propTypes = {
     classes: PropTypes.object.isRequired,
-    pageStyles: PropTypes.object.isRequired,
-    handlePageStyle: PropTypes.func.isRequired,
+    radioControl: PropTypes.object.isRequired,
+    handleRadioControl: PropTypes.func.isRequired,
     handleMenuBarControl: PropTypes.func.isRequired,
     handleDrawerOpen: PropTypes.func.isRequired,
-    bottomOpenSetting: PropTypes.bool.isRequired
+    bottomOpenRadio: PropTypes.bool.isRequired
   };
   constructor(props) {
     super(props);
     this.state = {
-      bottomOpenSetting: bottomDrawerTools.open
+      bottomOpenRadio: bottomDrawerTools.open
     };
   }
 
   render() {
-    const {classes, pageStyles} = this.props;
-    const {handleDrawerOpen, handlePageStyle, bottomOpenSetting} = this.props;
-    // console.log(bottomOpenSetting);
+    const {classes, radioControl} = this.props;
+    const {handleDrawerOpen, handleRadioControl, bottomOpenRadio} = this.props;
+    // console.log("getVolumeIcon",classes);
+    const getVolumeIcon = (volume) => {
+      if (radioControl.hasVolume) {
+        if (volume <= 0) {
+          return <VolumeMuteIcon/>
+        } else if (volume <= 50) {
+          return <VolumeDownIcon/>
+        } else {
+          return <VolumeUpIcon/>
+        }
+      } else {
+        return <VolumeOffIcon/>
+      }
+    }
 
     return (
       <Drawer
         anchor="bottom"
-        open={bottomOpenSetting}
+        open={bottomOpenRadio}
         className={classes.toolsBarPaper}
-        handleDrawerOpen={handleDrawerOpen("bottomOpenSetting")}>
+        handleDrawerOpen={handleDrawerOpen("bottomOpenRadio")}>
         <div>
           <List>
-            <ListItem className={classes.toolsBarListItem}>
-              {images.map(e => (<AvatarButton
-                title={e.title}
-                url={e.url}
-                backgroundColor={e.backgroundColor}
-                color={e.color}
-                isClicked={true}
-                onClick={() => {
-                handlePageStyle("backgroundColor")(e.backgroundColor);
-                handlePageStyle("backgroundImage")(`url(${e.url})`);
-                handlePageStyle("color")(e.color);
-              }}/>))}
+            <ListItem
+              className={classes.toolsBarListItem}
+              style={{
+              display: "flex"
+            }}>
+              <Tooltip title="播放">
+                <IconButton size="large" onClick={() => {}}>
+                  <PlayArrowIcon
+                    style={{
+                    fontSize: '-webkit-xxx-large'
+                  }}/>
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="暂停">
+                <IconButton size="medium" onClick={() => {}}>
+                  <PauseIcon/>
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="恢复">
+                <IconButton onClick={() => {}}>
+                  <ResumeIcon/>
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="停止">
+                <IconButton onClick={() => {}}>
+                  <StopIcon/>
+                </IconButton>
+              </Tooltip>
             </ListItem>
             <Divider/>
             <ListItem
@@ -69,44 +115,46 @@ class Content extends Component {
               style={{
               display: "flex"
             }}>
-              <MenuButton
-                name={`字体 ${pageStyles.fontFamily}`}
-                value={pageStyles.fontFamily}
-                handleSwitch={(value) => {
-                handlePageStyle("fontFamily")(value);
+              <SliderButton
+                name={`语速 ${radioControl.speed}`}
+                min={0}
+                max={100}
+                value={radioControl.speed}
+                handleSwitch={(event, value) => {
+                handleRadioControl("speed")(value);
               }}
                 handleMenuBarControl={this.props.handleMenuBarControl}/>
               <SliderButton
-                name={`字号 ${pageStyles.fontSize}`}
-                min={12}
-                max={128}
-                value={pageStyles.fontSize}
+                name={`音量 ${radioControl.volume}`}
+                min={0}
+                max={100}
+                value={radioControl.volume}
                 handleSwitch={(event, value) => {
-                handlePageStyle("fontSize")(value);
+                handleRadioControl("volume")(value);
               }}
-                handleMenuBarControl={this.props.handleMenuBarControl}/>
+                handleMenuBarControl={this.props.handleMenuBarControl}>
+                <IconButton
+                  style={{
+                  position: "absolute",
+                  bottom: 2,
+                  left: `calc((100% - 48px) / 2)`
+                }}
+                  onClick={() => {
+                  handleRadioControl("hasVolume")(!radioControl.hasVolume)
+                }}
+                  parentItemStyle={{
+                  paddingBottom: 52
+                }}>
+                  {getVolumeIcon(radioControl.volume)}
+                </IconButton>
+              </SliderButton>
               <SliderButton
-                name={`行间距 ${pageStyles.verticalSpacing}`}
-                min={1}
-                max={128}
-                value={pageStyles.verticalSpacing}
+                name={`音高 ${radioControl.pitch}`}
+                min={0}
+                max={100}
+                value={radioControl.pitch}
                 handleSwitch={(event, value) => {
-                handlePageStyle("verticalSpacing")(value);
-              }}
-                handleMenuBarControl={this.props.handleMenuBarControl}/>
-              <ColorPicker
-                name={`字色 ${pageStyles.color}`}
-                value={pageStyles.color}
-                handleSwitch={(value) => {
-                handlePageStyle("color")(value);
-              }}
-                handleMenuBarControl={this.props.handleMenuBarControl}/>
-              <ColorPicker
-                name={`背景色 ${pageStyles.backgroundColor}`}
-                value={pageStyles.backgroundColor}
-                hasAlpha={true}
-                handleSwitch={(value) => {
-                handlePageStyle("backgroundColor")(value);
+                handleRadioControl("pitch")(value);
               }}
                 handleMenuBarControl={this.props.handleMenuBarControl}/>
             </ListItem>
@@ -128,6 +176,9 @@ const styles = (theme) => {
     toolsBarListItem: {
       textAlign: "center",
       display: "inline-block"
+    },
+    button: {
+      margin: theme.spacing.unit
     }
   });
 }

@@ -64,6 +64,22 @@ class Content extends Component {
         fontFamily: "Arial,Verdana,Sans-serif",
         verticalSpacing: 1
       },
+      radioControl: {
+        URL: "http://api.xfyun.cn/v1/service/v1/tts",
+        CONTENT_TYPE: "application/x-www-form-urlencoded; charset=utf-8",
+        REAL_IP: "127.0.0.1",
+        APPID: "5b680059",
+        API_KEY: "258e2e2b381581eed5fa2e7ac07628f7",
+        AUF: "audio/L16;rate=16000",
+        AUE: "raw",
+        VOICE_NAME: "xiaoyan",
+        ENGINE_TYPE: "intp65",
+        TEXT_TYPE: "text",
+        speed: 50,
+        volume: 50,
+        hasVolume: true,
+        pitch: 50
+      },
       CONTENT: {},
       displayMode: 1
     };
@@ -266,6 +282,12 @@ class Content extends Component {
     this.setState({pageStyles});
   }
 
+  handleRadioControl = name => (value) => {
+    let radioControl = this.state.radioControl;
+    radioControl[name] = value;
+    this.setState({radioControl});
+  }
+
   handleSwitchPage = flag => (count, callback) => {
     let i;
     if (flag === 2) {
@@ -303,14 +325,11 @@ class Content extends Component {
   }
 
   handleRadioBar = () => {
-    this.setState({radioStatus: true});
+    // this.setState({radioStatus: true});
   }
 
   handleRadio = () => {
-    const URL = "http://api.xfyun.cn/v1/service/v1/tts",
-      AUE = "raw",
-      APPID = "5b680059",
-      API_KEY = "258e2e2b381581eed5fa2e7ac07628f7", {fileData, fileIndex, radioIndex} = this.state,
+    const {fileData, fileIndex, radioIndex, radioControl} = this.state, {URL, AUE, APPID, API_KEY} = radioControl,
       setState = (name, data, s = () => {}) => {
         this.setState({
           [name]: data
@@ -319,11 +338,16 @@ class Content extends Component {
       getHeader = () => {
         let curTime = "" + parseInt(new Date().getTime() / 1000, 10),
           param = {
-            auf: "audio/L16;rate=16000",
+            auf: radioControl.AUF,
             aue: AUE,
-            voice_name: "xiaoyan",
-            engine_type: "intp65",
-            text_type: "text"
+            voice_name: radioControl.VOICE_NAME,
+            engine_type: radioControl.ENGINE_TYPE,
+            text_type: radioControl.TEXT_TYPE,
+            speed: radioControl.speed,
+            volume: (radioControl.hasVolume
+              ? radioControl.volume
+              : 0),
+            pitch: radioControl.pitch
           },
           paramBase64 = base64.encode(JSON.stringify(param)),
           checkSum = md5.hex_md5(API_KEY + curTime + paramBase64),
@@ -332,8 +356,8 @@ class Content extends Component {
             'X-Param': paramBase64,
             'X-Appid': APPID,
             'X-CheckSum': checkSum,
-            'X-Real-Ip': '127.0.0.1',
-            'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'
+            'X-Real-Ip': radioControl.REAL_IP,
+            'Content-Type': radioControl.CONTENT_TYPE
           }
         return header;
       },
@@ -440,7 +464,14 @@ class Content extends Component {
   render() {
     const {classes} = this.props;
     const {fileData, fileIndex} = this.state;
-    const {leftOpen, bottomOpen, bottomOpenSetting, bottomOpenRadio, pageStyles} = this.state;
+    const {
+      leftOpen,
+      bottomOpen,
+      bottomOpenSetting,
+      bottomOpenRadio,
+      pageStyles,
+      radioControl
+    } = this.state;
     const {BOOK_CONTENT} = this.state.CONTENT;
     console.log(leftOpen, bottomOpen, bottomOpenSetting, bottomOpenRadio);
     const BOOK_CONTENT_HEIGHT = this.countLines(1),
@@ -579,8 +610,8 @@ class Content extends Component {
         </div>
         <div className={classes.toolsBar} ref={this.handleInputRef("TOOLS_BAR_RADIO")}>
           <ToolsBarRadio
-            pageStyles={pageStyles}
-            handlePageStyle={this.handlePageStyle}
+            radioControl={radioControl}
+            handleRadioControl={this.handleRadioControl}
             handleMenuBarControl={this.handleMenuBarControl}
             handleDrawerOpen={this.handleDrawerOpen}
             bottomOpenRadio={bottomOpenRadio}/>
