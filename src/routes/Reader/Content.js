@@ -611,6 +611,9 @@ class Content extends Component {
         </div>
         <div className={classes.toolsBar} ref={this.handleInputRef("TOOLS_BAR_RADIO")}>
           <ToolsBarRadio
+            fileL={fileData.length}
+            fileIndex={fileIndex}
+            handleSwitchPage={this.handleSwitchPage}
             radioIndex={this.state.radioIndex}
             radioControl={radioControl}
             handleRadioControl={this.handleRadioControl}

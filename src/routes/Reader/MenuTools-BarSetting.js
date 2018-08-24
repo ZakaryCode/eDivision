@@ -71,6 +71,7 @@ class Content extends Component {
             }}>
               <MenuButton
                 name={`字体 ${pageStyles.fontFamily}`}
+                listName="font"
                 value={pageStyles.fontFamily}
                 handleSwitch={(value) => {
                 handlePageStyle("fontFamily")(value);

@@ -31,6 +31,7 @@ import Drawer from "../../components/Drawer";
 import Stepper from "../../components/Stepper";
 import bottomDrawerTools from '../../store/bottomDrawerTools';
 import SliderButton from "./Menu-Slider";
+import MenuButton from "./Menu-List";
 
 const ResumeIcon = (props) => {
     return (
@@ -203,6 +204,38 @@ const ResumeIcon = (props) => {
                 style={{
                 display: "flex"
               }}>
+                <MenuButton
+                  name={`音频采样率 ${radioControl.AUF}`}
+                  listName="AUF"
+                  value={radioControl.AUF}
+                  handleSwitch={(value) => {
+                  handleRadioControl("AUF")(value);
+                }}
+                  handleMenuBarControl={this.props.handleMenuBarControl}/>
+                <MenuButton
+                  name={`音频编码 ${radioControl.AUE}`}
+                  listName="AUE"
+                  value={radioControl.AUE}
+                  handleSwitch={(value) => {
+                  handleRadioControl("AUE")(value);
+                }}
+                  handleMenuBarControl={this.props.handleMenuBarControl}/>
+                <MenuButton
+                  name={`发音人 ${radioControl.VOICE_NAME}`}
+                  listName="VOICE_NAME"
+                  value={radioControl.VOICE_NAME}
+                  handleSwitch={(value) => {
+                  handleRadioControl("VOICE_NAME")(value);
+                }}
+                  handleMenuBarControl={this.props.handleMenuBarControl}/>
+                <MenuButton
+                  name={`引擎类型 ${radioControl.ENGINE_TYPE}`}
+                  listName="ENGINE_TYPE"
+                  value={radioControl.ENGINE_TYPE}
+                  handleSwitch={(value) => {
+                  handleRadioControl("ENGINE_TYPE")(value);
+                }}
+                  handleMenuBarControl={this.props.handleMenuBarControl}/>
                 <SliderButton
                   name={`语速 ${radioControl.speed}`}
                   min={0}

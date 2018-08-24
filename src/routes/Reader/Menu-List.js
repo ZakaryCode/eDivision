@@ -21,7 +21,8 @@ class Content extends Component {
     name: PropTypes.string.isRequired,
     value: PropTypes.number.isRequired,
     handleMenuBarControl: PropTypes.func.isRequired,
-    handleSwitch: PropTypes.func.isRequired
+    handleSwitch: PropTypes.func.isRequired,
+    listName: PropTypes.string.isRequired
   };
   button = null;
 
@@ -92,6 +93,76 @@ class Content extends Component {
             }
           ]
         }
+      ],
+      AUF: [
+        {
+          type: "list",
+          name: '音频采样率',
+          value: 'AUF',
+          list: [
+            {
+              name: "audio/L16;rate=8000",
+              value: "audio/L16;rate=8000"
+            }, {
+              name: "audio/L16;rate=16000",
+              value: "audio/L16;rate=16000"
+            }
+          ]
+        }
+      ],
+      AUE: [
+        {
+          type: "list",
+          name: '音频编码',
+          value: 'AUE',
+          list: [
+            {
+              name: "未压缩的pcm或wav格式",
+              value: "raw"
+            }, {
+              name: "mp3格式",
+              value: "lame"
+            }
+          ]
+        }
+      ],
+      VOICE_NAME: [
+        {
+          type: "list",
+          name: '发音人',
+          value: 'VOICE_NAME',
+          list: [
+            {
+              name: "晓燕",
+              value: "xiaoyan"
+            }
+          ]
+        }
+      ],
+      ENGINE_TYPE: [
+        {
+          type: "list",
+          name: '引擎类型',
+          value: 'ENGINE_TYPE',
+          list: [
+            {
+              name: "普通",
+              value: "aisound"
+            }, {
+              name: "中文",
+              value: "intp65"
+            }, {
+              name: "英文",
+              value: "intp65_en"
+            }, {
+              name: "小语种",
+              value: "mtts"
+            }, {
+              name: "优化",
+              value: "x"
+            }
+          ]
+        }
       ]
     }
   };
@@ -110,11 +181,13 @@ class Content extends Component {
       .handleMenuBarControl(!!null);
   };
 
-  handleSwitch = (value) => {
+  handleSwitch = (value, flag = 0) => {
     this
       .props
       .handleSwitch(value);
-    // this.handleClose();
+    if (flag === 1) {
+      this.handleClose();
+    }
   }
 
   handleToggle = value => () => {
@@ -135,10 +208,26 @@ class Content extends Component {
   };
 
   render() {
-    const {classes, name, value} = this.props;
+    const {classes, name, value, listName} = this.props;
     const {anchorEl} = this.state;
 
-    const checked = value.split(',');
+    let checked = null,
+      ulStyle = {
+        padding: 0
+      },
+      divStyle = {},
+      extraDiv = null;
+    if (this.state.ListGroup[listName][0].type === "radio" || this.state.ListGroup[listName][0].type === "checkbox") {
+      checked = (value || "").split(',');
+      divStyle = {
+        overflowY: 'scroll'
+      };
+      extraDiv = <MenuItem onClick={this.handleClose}>
+        <Typography style={{
+          margin: "auto"
+        }}>确定</Typography>
+      </MenuItem>;
+    }
 
     return (
       <div className={classes.root}>
@@ -169,50 +258,57 @@ class Content extends Component {
                     style={{
                     display: 'inline-block',
                     maxHeight: 350,
-                    minHeight: 300,
-                    overflowY: 'scroll'
+                    ...divStyle
                   }}>
-                    <List className={classes.list}>
+                    <List className={classes.list} dense={false}>
                       {this
                         .state
-                        .ListGroup
-                        .font
+                        .ListGroup[listName]
                         .map(e1 => (
                           <li key={`section-${e1.value}`} className={classes.listSection}>
-                            <ul
-                              className={classes.ul}
-                              style={{
-                              padding: 0
-                            }}>
-                              <ListSubheader>{e1.name}</ListSubheader>
+                            <ul className={classes.ul} style={ulStyle}>
+                              {(e1.type === "radio" || e1.type === "checkbox")
+                                ? <ListSubheader>{e1.name}</ListSubheader>
+                                : null}
                               {e1
                                 .list
-                                .map(e2 => (
-                                  <ListItem
-                                    key={`item-${e1.value}-${e2.value}`}
-                                    onClick={this.handleToggle(e2.value)}
-                                    dense
-                                    button
-                                    disableGutters
-                                    className={classes.listItem}>
-                                    <Checkbox
-                                      checked={checked.indexOf(e2.value) !== -1}
-                                      tabIndex={-1}
-                                      disableRipple/>
-                                    <ListItemText primary={e2.value}/>
-                                  </ListItem>
-                                ))}
+                                .map(e2 => {
+                                  if (e1.type === "radio" || e1.type === "checkbox") {
+                                    return <ListItem
+                                      key={`item-${e1.value}-${e2.value}`}
+                                      onClick={this.handleToggle(e2.value)}
+                                      dense
+                                      button
+                                      disableGutters={true}
+                                      className={classes.listItem}>
+                                      <Checkbox
+                                        checked={checked.indexOf(e2.value) !== -1}
+                                        tabIndex={-1}
+                                        disableRipple/>
+                                      <ListItemText primary={e2.name}/>
+                                    </ListItem>
+                                  } else if (e1.type === "list") {
+                                    return <ListItem
+                                      key={`item-${e1.value}-${e2.value}`}
+                                      onClick={() => this.handleSwitch(e2.value, 1)}
+                                      dense={false}
+                                      button
+                                      disableGutters={false}
+                                      className={classes.listItem}>
+                                      <ListItemText
+                                        primary={e2.name}
+                                        style={{
+                                        padding: 0
+                                      }}/>
+                                    </ListItem>
+                                  }
+                                })}
                             </ul>
                           </li>
                         ))}
                     </List>
                   </div>
-                  <MenuItem onClick={this.handleClose}>
-                    <Typography
-                      style={{
-                      margin: "auto"
-                    }}>确定</Typography>
-                  </MenuItem>
+                  {extraDiv}
                 </ClickAwayListener>
               </Paper>
             </Grow>
@@ -226,7 +322,8 @@ class Content extends Component {
 const styles = theme => ({
   root: {
     backgroundColor: theme.palette.background.paper,
-    flex: 1
+    flex: 1,
+    zIndex: 2
   },
   list: {
     width: '100%',
