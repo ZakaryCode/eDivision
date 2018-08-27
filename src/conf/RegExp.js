@@ -1,6 +1,7 @@
 export const s = /\$|\(|\)|\*|\+|\.|\?|\{|\}|\[|\]|\^|\||\\/ig;
 export const newline = /\r|\n|\r\n/ig; // 行
 export const multiline = /\r+|\n+|\r\n/ig; // 多空行
+export const tripletBreak = /[\r|\n|\r\n]{3,}/ig; // 三个以上的换行
 export const emptyEnd = /(^\s+)|(\s+$)/ig; // 首尾空格
 export const redundancy = /\r|\n|\\s/ig; // 空,换行
 export const spacing = /\s/ig; // 空

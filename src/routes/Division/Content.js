@@ -105,7 +105,7 @@ class Content extends Component {
       if (err) {
         ipc.send('open-error-get-file-dialog');
       } else {
-        // console.log(book, division, connect, data);
+        // data = data.split(R.tripletBreak);
         data = data.split((division || divisionD));
         for (let index = 0; index < data.length; index++) {
           ((index) => {
