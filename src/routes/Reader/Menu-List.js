@@ -29,6 +29,25 @@ class Content extends Component {
   state = {
     anchorEl: null,
     ListGroup: {
+      WIDTH: [
+        {
+          type: "list",
+          name: 'screen-width',
+          value: 'screen-width',
+          list: [
+            {
+              name: "50%",
+              value: "50%"
+            }, {
+              name: "75%",
+              value: "75%"
+            }, {
+              name: "100%",
+              value: "100%"
+            }
+          ]
+        }
+      ],
       font: [
         {
           type: "radio",
@@ -302,6 +321,7 @@ class Content extends Component {
                                       }}/>
                                     </ListItem>
                                   }
+                                  return null;
                                 })}
                             </ul>
                           </li>

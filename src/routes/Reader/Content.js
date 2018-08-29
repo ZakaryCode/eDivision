@@ -1,10 +1,6 @@
 /**
  * @author zakary
  * @description 内容页
- * 开发纪要：
- * 添加字体、字号、字色、背景选择功能
- * 添加护眼模式、夜间模式、淡蓝、淡绿、淡粉、淡紫、牛皮纸、白瓷砖、大理石、纸张模式
- * 添加宽视距、中等视距、窄视距模式
  */
 
 import React, {Component} from 'react';
@@ -58,6 +54,7 @@ class Content extends Component {
       bottomOpenSetting: bottomDrawerTools.open,
       bottomOpenRadio: bottomDrawerRadio.open,
       pageStyles: {
+        screenWidth: "100%",
         color: "#000000",
         backgroundColor: "#FFFFFF",
         fontSize: 16,
@@ -451,8 +448,8 @@ class Content extends Component {
   }
 
   autoscale = (canvas) => {
-    const ratio = this.countRatio(canvas);
-    if (1 != ratio) {
+    const ratio = Number(this.countRatio(canvas));
+    if (1 !== ratio) {
       canvas.style.width = canvas.width + 'px';
       canvas.style.height = canvas.height + 'px';
       canvas.width *= ratio;
@@ -552,12 +549,18 @@ class Content extends Component {
           fontFamily: pageStyles.fontFamily,
           height: BOOK_CONTENT_HEIGHT
         }}>
-          <div id="BOOK_CONTENT_INNER" ref={this.handleInputRef("BOOK_CONTENT_INNER")}>
+          <div
+            id="BOOK_CONTENT_INNER"
+            ref={this.handleInputRef("BOOK_CONTENT_INNER")}
+            style={{
+            margin: "auto",
+            width: pageStyles.screenWidth
+          }}>
             {BookContentDiv(BOOK_CONTENT_HEIGHT)}
             <canvas
               id="canvas"
               width={document.body.offsetWidth - margin * 2}
-              height={document.body.offsetHeight - margin * 2}></canvas>
+              height={document.body.offsetHeight - margin * 2}/>
           </div>
         </div>
         <div className="bookCatalog" ref={this.handleInputRef("BOOK_CATALOG")}>
@@ -583,6 +586,7 @@ class Content extends Component {
                       </ListItem>
                     }
                   }
+                  return null;
                 })}
               </List>
             </div>

@@ -70,6 +70,14 @@ class Content extends Component {
               display: "flex"
             }}>
               <MenuButton
+                name={`视宽 ${pageStyles.screenWidth}`}
+                listName="WIDTH"
+                value={pageStyles.screenWidth}
+                handleSwitch={(value) => {
+                handlePageStyle("screenWidth")(value);
+              }}
+                handleMenuBarControl={this.props.handleMenuBarControl}/>
+              <MenuButton
                 name={`字体 ${pageStyles.fontFamily}`}
                 listName="font"
                 value={pageStyles.fontFamily}
