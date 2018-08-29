@@ -323,7 +323,9 @@ class Content extends Component {
   }
 
   handleRadioBar = () => {
-    // this.setState({radioStatus: true});
+    this.setState({
+      radioStatus: true
+    }, this.handleRadio);
   }
 
   handleRadio = () => {
@@ -385,7 +387,7 @@ class Content extends Component {
     if (!BODY_TEXT) {
       return;
     }
-    // alert(BODY_TEXT);
+    console.log("BODY_TEXT", BODY_TEXT);
     ipc.send('get-xfyun-radio', AUE, URL, getHeader(), BODY_TEXT);
     ipc.on("return-xfyun-radio", (event, data) => {
       console.log(event, data);
@@ -520,9 +522,7 @@ class Content extends Component {
         }
       };
     if (this.state.radioStatus) {
-      this.setState({
-        radioStatus: false
-      }, this.handleRadio);
+      this.setState({radioStatus: false});
     }
 
     return (
@@ -559,8 +559,8 @@ class Content extends Component {
             {BookContentDiv(BOOK_CONTENT_HEIGHT)}
             <canvas
               id="canvas"
-              width={document.body.offsetWidth - margin * 2}
-              height={document.body.offsetHeight - margin * 2}/>
+              height={document.body.offsetHeight - margin * 2}
+              width={document.body.offsetWidth - margin * 2}/>
           </div>
         </div>
         <div className="bookCatalog" ref={this.handleInputRef("BOOK_CATALOG")}>
