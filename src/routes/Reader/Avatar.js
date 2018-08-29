@@ -137,7 +137,6 @@ class Content extends Component {
 
 export default withStyles(styles)(Content);
 
-// * 添加护眼模式、夜间模式、淡蓝、淡绿、淡粉、淡紫、牛皮纸、白瓷砖、大理石、纸张模式
 export const images = [
   {
     url: require('../../asset/pageBackground/45-degree-fabric-light.png'),
