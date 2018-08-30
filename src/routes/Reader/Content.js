@@ -48,7 +48,6 @@ class Content extends Component {
       fileIndex: 0,
       pageIndex: 0,
       radioIndex: 0,
-      radioStatus: false,
       leftOpen: leftDrawer.open,
       bottomOpen: bottomDrawer.open,
       bottomOpenSetting: bottomDrawerTools.open,
@@ -62,6 +61,7 @@ class Content extends Component {
         verticalSpacing: 1
       },
       radioControl: {
+        isPlaying: false,
         URL: "http://api.xfyun.cn/v1/service/v1/tts",
         CONTENT_TYPE: "application/x-www-form-urlencoded; charset=utf-8",
         REAL_IP: "127.0.0.1",
@@ -75,8 +75,7 @@ class Content extends Component {
         speed: 50,
         volume: 50,
         hasVolume: true,
-        pitch: 50,
-        isPlaying: false
+        pitch: 50
       },
       CONTENT: {},
       displayMode: 1
@@ -280,10 +279,12 @@ class Content extends Component {
     this.setState({pageStyles});
   }
 
-  handleRadioControl = name => (value) => {
+  handleRadioControl = name => (value, call = () => {}) => {
     let radioControl = this.state.radioControl;
     radioControl[name] = value;
-    this.setState({radioControl});
+    this.setState({
+      radioControl
+    }, call);
   }
 
   handleSwitchPage = flag => (count, callback) => {
@@ -323,9 +324,7 @@ class Content extends Component {
   }
 
   handleRadioBar = () => {
-    this.setState({
-      radioStatus: true
-    }, this.handleRadio);
+    this.handleRadioControl("isPlaying")(true, this.handleRadio);
   }
 
   handleRadio = () => {
@@ -335,6 +334,7 @@ class Content extends Component {
           [name]: data
         }, s);
       },
+      handleRadioControl = this.handleRadioControl,
       getHeader = () => {
         let curTime = "" + parseInt(new Date().getTime() / 1000, 10),
           param = {
@@ -343,11 +343,11 @@ class Content extends Component {
             voice_name: radioControl.VOICE_NAME,
             engine_type: radioControl.ENGINE_TYPE,
             text_type: radioControl.TEXT_TYPE,
-            speed: radioControl.speed,
-            volume: (radioControl.hasVolume
+            speed: "" + radioControl.speed,
+            volume: "" + (radioControl.hasVolume
               ? radioControl.volume
-              : 0),
-            pitch: radioControl.pitch
+              : 50),
+            pitch: "" + radioControl.pitch
           },
           paramBase64 = base64.encode(JSON.stringify(param)),
           checkSum = md5.hex_md5(API_KEY + curTime + paramBase64),
@@ -361,34 +361,34 @@ class Content extends Component {
           }
         return header;
       },
-      getBody = () => {
+      getBody = (i) => {
         const paragraphs = (fileData[fileIndex] || "").split(R.newline),
           paragraphsL = paragraphs.length,
-          paragraph = (paragraphs[radioIndex] || "").replace(R.redundancy, "");
+          paragraph = (paragraphs[i] || "").replace(R.redundancy, "");
         let data = {};
-        if (paragraphsL < radioIndex) {
+        if (paragraphsL < i) {
           // 本章读完，切换下一章
           this.handleSwitchPage(1)(null, () => {
-            setState("radioStatus", true);
+            handleRadioControl("isPlaying")(true);
           });
         } else if (paragraph) {
           // 段落存在，开始阅读
           data = {
             text: paragraph
           }
+          console.log("BODY_TEXT", data);
           return utils.json2Form(data);
         } else {
-          // 段落不存在，切换下一段落
-          setState("radioIndex", radioIndex + 1);
-          setState("radioStatus", true);
+          // 段落不存在，切换下一段落 setState("radioIndex", i + 1);
+          return getBody(i + 1);
         }
       },
-      BODY_TEXT = getBody();
-    if (!BODY_TEXT) {
+      HEADER_TEXT = getHeader(),
+      BODY_TEXT = getBody(radioIndex);
+    if (!AUE || !URL || !HEADER_TEXT || !BODY_TEXT) {
       return;
     }
-    console.log("BODY_TEXT", BODY_TEXT);
-    ipc.send('get-xfyun-radio', AUE, URL, getHeader(), BODY_TEXT);
+    ipc.send('get-xfyun-radio', AUE, URL, HEADER_TEXT, BODY_TEXT);
     ipc.on("return-xfyun-radio", (event, data) => {
       console.log(event, data);
       let source = audioCtx.createBufferSource(),
@@ -407,7 +407,7 @@ class Content extends Component {
         console.log("audioCtx.onended", event);
         // 阅读完毕，向下跳转
         setState("radioIndex", radioIndex + 1);
-        setState("radioStatus", true);
+        handleRadioControl("isPlaying")(true);
       }
     });
     ipc.on("return-xfyun-radio-error", (event, data) => {
@@ -521,9 +521,6 @@ class Content extends Component {
           }
         }
       };
-    if (this.state.radioStatus) {
-      this.setState({radioStatus: false});
-    }
 
     return (
       <div

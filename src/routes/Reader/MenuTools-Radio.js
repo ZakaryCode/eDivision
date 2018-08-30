@@ -159,7 +159,9 @@ const ResumeIcon = (props) => {
                   }}/> {radioControl.isPlaying
                     ? <IconB
                         title="暂停"
-                        onClick={() => {}}
+                        onClick={() => {
+                        handleRadioControl("isPlaying")(false);
+                      }}
                         iconName="Pause"
                         style={{
                         fontSize: '-webkit-xxx-large',
@@ -168,7 +170,9 @@ const ResumeIcon = (props) => {
                     : (!radioIndex
                       ? <IconB
                           title="播放"
-                          onClick={() => {}}
+                          onClick={() => {
+                          handleRadioControl("isPlaying")(true);
+                        }}
                           iconName="PlayArrow"
                           style={{
                           fontSize: '-webkit-xxx-large',
@@ -176,7 +180,9 @@ const ResumeIcon = (props) => {
                         }}/>
                       : <IconB
                         title="恢复"
-                        onClick={() => {}}
+                        onClick={() => {
+                        handleRadioControl("isPlaying")(true);
+                      }}
                         iconName="Resume"
                         style={{
                         fontSize: '-webkit-xxx-large',
