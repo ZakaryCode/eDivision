@@ -56,7 +56,7 @@ class App extends Component {
         <div>
           <header className="App-header">
             <img src={logo} className="App-logo" alt="logo"/>
-            <h1 className="App-title">欢迎使用文件分割</h1>
+            <h1 className="App-title">{"欢迎使用文件分割"}</h1>
             <div
               style={{
               display: this.state.devtools
