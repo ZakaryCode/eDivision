@@ -1,6 +1,6 @@
 const app = {
     // 存储事件监听
-    storage: (key, callback) => {
+    storage: (key, callback = () => {}) => {
         window
             .addEventListener('storage', function (e) {
                 //获取被修改的键值
@@ -13,7 +13,7 @@ const app = {
             }, false);
     },
     // 事件监听
-    listen: (event, callback) => {
+    listen: (event, callback = () => {}) => {
         window
             .addEventListener(event, function (e) {
                 // 设置回调

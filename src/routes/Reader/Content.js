@@ -287,7 +287,7 @@ class Content extends Component {
     }, call);
   }
 
-  handleSwitchPage = flag => (count, callback) => {
+  handleSwitchPage = flag => (count, callback = () => {}) => {
     let i;
     if (flag === 2) {
       i = count;
@@ -308,10 +308,10 @@ class Content extends Component {
       pageIndex: 0,
       radioIndex: 0
     }, () => {
-      if (typeof callback === "function") 
+      if (typeof callback === 'function') {
         callback();
       }
-    );
+    });
   }
 
   handleMenuBarControl = (open) => {
