@@ -19,6 +19,7 @@ import bottomDrawerRadio from '../../store/bottomDrawerRadio';
 import app from '../../store/app';
 import * as R from "../../conf/RegExp";
 import * as utils from "../../utils";
+import AudioPlayer from "../../utils/AudioPlayer";
 import base64 from "../../utils/base64";
 import * as md5 from "../../utils/md5";
 import ToolsBar from "./MenuTools-Bar";
@@ -29,10 +30,8 @@ const _fs_ = window.require('fs'),
   _path_ = window.require('path'),
   electron = window.require("electron"),
   remote = electron.remote;
-const ipc = electron.ipcRenderer;
-
-const AudioContext = window.AudioContext || window.webkitAudioContext;
-const audioCtx = new AudioContext();
+const ipc = electron.ipcRenderer,
+  audio = new AudioPlayer();
 
 let margin;
 class Content extends Component {
@@ -47,7 +46,6 @@ class Content extends Component {
       fileData: [],
       fileIndex: 0,
       pageIndex: 0,
-      radioIndex: 0,
       leftOpen: leftDrawer.open,
       bottomOpen: bottomDrawer.open,
       bottomOpenSetting: bottomDrawerTools.open,
@@ -62,6 +60,7 @@ class Content extends Component {
       },
       radioControl: {
         isPlaying: false,
+        playIndex: 0,
         URL: "http://api.xfyun.cn/v1/service/v1/tts",
         CONTENT_TYPE: "application/x-www-form-urlencoded; charset=utf-8",
         REAL_IP: "127.0.0.1",
@@ -273,10 +272,12 @@ class Content extends Component {
     }
   }
 
-  handlePageStyle = name => (value) => {
+  handlePageStyle = name => (value, call = () => {}) => {
     let pageStyles = this.state.pageStyles;
     pageStyles[name] = value;
-    this.setState({pageStyles});
+    this.setState({
+      pageStyles
+    }, call);
   }
 
   handleRadioControl = name => (value, call = () => {}) => {
@@ -305,12 +306,13 @@ class Content extends Component {
     }
     this.setState({
       fileIndex: i,
-      pageIndex: 0,
-      radioIndex: 0
+      pageIndex: 0
     }, () => {
-      if (typeof callback === 'function') {
-        callback();
-      }
+      this.handleRadioControl('playIndex', 0, () => {
+        if (typeof callback === 'function') {
+          callback();
+        }
+      });
     });
   }
 
@@ -328,36 +330,35 @@ class Content extends Component {
   }
 
   handleRadio = () => {
-    const {fileData, fileIndex, radioIndex, radioControl} = this.state, {URL, AUE, APPID, API_KEY} = radioControl,
-      setState = (name, data, s = () => {}) => {
-        this.setState({
-          [name]: data
-        }, s);
-      },
+    const {fileData, fileIndex} = this.state,
+      handleRadio = this.handleRadio,
       handleRadioControl = this.handleRadioControl,
+      getRC = (s) => {
+        const rc = this.state.radioControl || {};
+        return rc[s];
+      },
       getHeader = () => {
         let curTime = "" + parseInt(new Date().getTime() / 1000, 10),
           param = {
-            auf: radioControl.AUF,
-            aue: AUE,
-            voice_name: radioControl.VOICE_NAME,
-            engine_type: radioControl.ENGINE_TYPE,
-            text_type: radioControl.TEXT_TYPE,
-            speed: "" + radioControl.speed,
-            volume: "" + (radioControl.hasVolume
-              ? radioControl.volume
+            auf: getRC("AUF"),
+            aue: getRC("AUE"),
+            voice_name: getRC("VOICE_NAME"),
+            engine_type: getRC("ENGINE_TYPE"),
+            text_type: getRC("TEXT_TYPE"),
+            speed: "" + getRC("speed"),
+            volume: "" + (getRC("hasVolume")
+              ? getRC("volume")
               : 50),
-            pitch: "" + radioControl.pitch
+            pitch: "" + getRC("pitch")
           },
           paramBase64 = base64.encode(JSON.stringify(param)),
-          checkSum = md5.hex_md5(API_KEY + curTime + paramBase64),
           header = {
             'X-CurTime': curTime,
             'X-Param': paramBase64,
-            'X-Appid': APPID,
-            'X-CheckSum': checkSum,
-            'X-Real-Ip': radioControl.REAL_IP,
-            'Content-Type': radioControl.CONTENT_TYPE
+            'X-Appid': getRC("APPID"),
+            'X-CheckSum': md5.hex_md5(getRC("API_KEY") + curTime + paramBase64),
+            'X-Real-Ip': getRC("REAL_IP"),
+            'Content-Type': getRC("CONTENT_TYPE")
           }
         return header;
       },
@@ -369,7 +370,9 @@ class Content extends Component {
         if (paragraphsL < i) {
           // 本章读完，切换下一章
           this.handleSwitchPage(1)(null, () => {
-            handleRadioControl("isPlaying")(true);
+            handleRadioControl("playIndex")(0, () => {
+              handleRadioControl("isPlaying")(true, handleRadio);
+            });
           });
         } else if (paragraph) {
           // 段落存在，开始阅读
@@ -377,38 +380,38 @@ class Content extends Component {
             text: paragraph
           }
           console.log("BODY_TEXT", data);
+          handleRadioControl("playIndex")(i);
           return utils.json2Form(data);
         } else {
-          // 段落不存在，切换下一段落 setState("radioIndex", i + 1);
+          // 段落不存在，切换下一段落
           return getBody(i + 1);
         }
       },
       HEADER_TEXT = getHeader(),
-      BODY_TEXT = getBody(radioIndex);
-    if (!AUE || !URL || !HEADER_TEXT || !BODY_TEXT) {
+      BODY_TEXT = getBody(getRC("playIndex"));
+    if (!getRC("AUE") || !getRC("URL") || !HEADER_TEXT || !BODY_TEXT) {
       return;
     }
-    ipc.send('get-xfyun-radio', AUE, URL, HEADER_TEXT, BODY_TEXT);
+    ipc.send('get-xfyun-radio', getRC("AUE"), getRC("URL"), HEADER_TEXT, BODY_TEXT);
     ipc.on("return-xfyun-radio", (event, data) => {
       console.log(event, data);
-      let source = audioCtx.createBufferSource(),
-        audioData = utils.toArrayBuffer(data);
-      audioCtx.decodeAudioData(audioData, function (buffer) {
-        source.buffer = buffer;
-        source.connect(audioCtx.destination);
-        source.loop = false;
-        source.start(0);
-        // source.stop(0);
-      }, function (e) {
-        console.log("Error with decoding audio data" + e.err);
+      const audioData = utils.toArrayBuffer(data);
+      audio.initData(audioData, () =>{
+        handleRadioControl("AudioPlayer")(audio);
+      }, (event) => {
+        if (getRC("isPlaying")) {
+          // 阅读完毕，向下跳转
+          handleRadioControl("playIndex")(getRC("playIndex") + 1, () => {
+            handleRadioControl("isPlaying")(true, handleRadio);
+          });
+        } else {
+          // 主动停止，跳出 素材
+          console.log("audioCtx.onended", event);
+        }
+      }, (e) => {
+        console.log("Error with decoding audio data", e);
       });
-      source.onended = function (event) {
-        // 主动停止，跳出 素材
-        console.log("audioCtx.onended", event);
-        // 阅读完毕，向下跳转
-        setState("radioIndex", radioIndex + 1);
-        handleRadioControl("isPlaying")(true);
-      }
+      audio.start();
     });
     ipc.on("return-xfyun-radio-error", (event, data) => {
       console.log(event, data);
@@ -615,8 +618,8 @@ class Content extends Component {
             fileL={fileData.length}
             fileIndex={fileIndex}
             handleSwitchPage={this.handleSwitchPage}
-            radioIndex={this.state.radioIndex}
             radioControl={radioControl}
+            handleRadio={this.handleRadioBar}
             handleRadioControl={this.handleRadioControl}
             handleMenuBarControl={this.handleMenuBarControl}
             handleDrawerOpen={this.handleDrawerOpen}
