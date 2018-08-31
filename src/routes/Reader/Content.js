@@ -30,8 +30,7 @@ const _fs_ = window.require('fs'),
   _path_ = window.require('path'),
   electron = window.require("electron"),
   remote = electron.remote;
-const ipc = electron.ipcRenderer,
-  audio = new AudioPlayer();
+const ipc = electron.ipcRenderer;
 
 let margin;
 class Content extends Component {
@@ -326,10 +325,13 @@ class Content extends Component {
   }
 
   handleRadioBar = () => {
-    this.handleRadioControl("isPlaying")(true, this.handleRadio);
+    this.handleRadioControl("AudioPlayer")(new AudioPlayer(), () => {
+      this.handleRadioControl("isPlaying")(true, this.handleRadio);
+    });
   }
 
-  handleRadio = () => {
+  handleRadio = (tag = "0. START") => {
+    console.log("handleRadio tag: " + tag);
     const {fileData, fileIndex} = this.state,
       handleRadio = this.handleRadio,
       handleRadioControl = this.handleRadioControl,
@@ -371,7 +373,7 @@ class Content extends Component {
           // 本章读完，切换下一章
           this.handleSwitchPage(1)(null, () => {
             handleRadioControl("playIndex")(0, () => {
-              handleRadioControl("isPlaying")(true, handleRadio);
+              handleRadioControl("isPlaying")(true, () => handleRadio("2. NEXT CHAPTER"));
             });
           });
         } else if (paragraph) {
@@ -394,21 +396,20 @@ class Content extends Component {
     ipc.send('get-xfyun-radio', getRC("AUE"), getRC("URL"), HEADER_TEXT, BODY_TEXT);
     ipc.on("return-xfyun-radio", (event, data) => {
       console.log(event, data);
-      const audioData = utils.toArrayBuffer(data);
-      audio.initData(audioData, () => {
-        handleRadioControl("AudioPlayer")(audio);
-      }, (event) => {
+      const audioData = utils.toArrayBuffer(data),
+        audio = getRC("AudioPlayer");
+      audio.initData(audioData, () => {}, (event) => {
         if (getRC("isPlaying")) {
           // 阅读完毕，向下跳转
           handleRadioControl("playIndex")(getRC("playIndex") + 1, () => {
-            handleRadioControl("isPlaying")(true, handleRadio);
+            handleRadioControl("isPlaying")(true, () => handleRadio("1. NEXT PART"));
           });
         } else {
           // 主动停止，跳出 素材
           console.log("audioCtx.onended", event);
         }
       }, (e) => {
-        console.log("Error with decoding audio data", e);
+        console.log(e);
       });
       audio.start();
     });

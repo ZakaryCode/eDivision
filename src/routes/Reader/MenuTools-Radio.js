@@ -161,9 +161,9 @@ const ResumeIcon = (props) => {
                         title="暂停"
                         onClick={() => {
                         handleRadioControl("isPlaying")(false, () => {
-                          radioControl
-                            .AudioPlayer
-                            .pause();
+                          const audio = radioControl.AudioPlayer;
+                          audio.pause();
+                          // handleRadioControl("AudioPlayer")(audio);
                         });
                       }}
                         iconName="Pause"
@@ -184,9 +184,9 @@ const ResumeIcon = (props) => {
                         title="恢复"
                         onClick={() => {
                         handleRadioControl("isPlaying")(true, () => {
-                          radioControl
-                            .AudioPlayer
-                            .restart();
+                          const audio = radioControl.AudioPlayer;
+                          audio.restart();
+                          // handleRadioControl("AudioPlayer")(audio);
                         });
                       }}
                         iconName="Resume"
@@ -197,12 +197,17 @@ const ResumeIcon = (props) => {
                   <IconB
                     title="停止"
                     onClick={() => {
-                    handleRadioControl("isPlaying")(false, () => {
+                    if (radioControl.isPlaying) {
+                      handleRadioControl("isPlaying")(false, () => {
+                        handleRadioControl("playIndex")(0, () => {
+                          const audio = radioControl.AudioPlayer;
+                          audio.stop();
+                          handleRadioControl("AudioPlayer")(audio);
+                        });
+                      });
+                    } else {
                       handleRadioControl("playIndex")(0);
-                      radioControl
-                        .AudioPlayer
-                        .stop();
-                    });
+                    }
                   }}
                     iconName="Stop"
                     style={{

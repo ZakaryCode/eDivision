@@ -3,22 +3,20 @@ const AudioContext = window.AudioContext || window.webkitAudioContext;
 class AudioPlayer {
   constructor() {
     this.audioCtx = new AudioContext();
-    this.source = null;
-  }
-
-  createBufferSource() {
     this.source = this
       .audioCtx
       .createBufferSource();
+    this.decodeAudio = (time = 0) => {}
+  }
+
+  initData(data, success = () => {}, onended = (event) => {}, fail = (error) => {}) {
+    // this.audioCtx = new AudioContext();
     console.log('====================================');
     console.log(this.audioCtx, this.source);
     console.log('====================================');
-    return this.source;
-  }
-
-  initData(data, success = () => {}, onended = () => {}, fail = () => {}) {
-    this.parameter = (time = 0) => [
-      data, (buffer) => {
+    this.decodeAudio = (time = 0) => this
+      .audioCtx
+      .decodeAudioData(data, (buffer) => {
         try {
           success();
           this.source.buffer = buffer;
@@ -26,45 +24,49 @@ class AudioPlayer {
             .source
             .connect(this.audioCtx.destination);
           this.source.loop = false;
+          this.source.onended = (event) => {
+            this.source = this
+              .audioCtx
+              .createBufferSource();
+            onended(event);
+          };
           this
             .source
             .start(time);
-          // this.source.stop(0);
-          this.source.onended = (event) => {
-            onended(event);
-          }
         } catch (error) {
-          fail(error);
+          fail("Error with decodeAudioData " + error);
         }
-      },
-      fail
-    ];
+      }, (error) => fail("Error with decoding audio data " + error));
   }
 
   start() {
-    this.createBufferSource();
-    this
-      .audioCtx
-      .decodeAudioData(...this.parameter(0));
+    const audio = this.audioCtx,
+      setTime = 0;
+    this.decodeAudio(setTime);
+    audio.onstatechange = function () {
+      console.log("onstatechange", audio.state);
+    }
   }
 
   restart() {
-    this.createBufferSource();
     this
       .audioCtx
-      .decodeAudioData(...this.parameter(this.audioCtx.currentTime));
+      .resume();
   }
 
   pause() {
     this
-      .source
-      .stop(this.audioCtx.currentTime);
+      .audioCtx
+      .suspend();
   }
 
   stop() {
     this
-      .source
-      .stop(0);
+      .audioCtx
+      .close()
+      .then(() => {
+        console.log("audioCtx close");
+      });
   }
 };
 
