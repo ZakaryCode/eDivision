@@ -183,7 +183,7 @@ const ResumeIcon = (props) => {
                       : <IconB
                         title="恢复"
                         onClick={() => {
-                        handleRadioControl("isPlaying")(true,()=>{
+                        handleRadioControl("isPlaying")(true, () => {
                           radioControl
                             .AudioPlayer
                             .restart();

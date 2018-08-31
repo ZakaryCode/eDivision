@@ -389,14 +389,13 @@ class Content extends Component {
       },
       HEADER_TEXT = getHeader(),
       BODY_TEXT = getBody(getRC("playIndex"));
-    if (!getRC("AUE") || !getRC("URL") || !HEADER_TEXT || !BODY_TEXT) {
+    if (!getRC("AUE") || !getRC("URL") || !HEADER_TEXT || !BODY_TEXT) 
       return;
-    }
     ipc.send('get-xfyun-radio', getRC("AUE"), getRC("URL"), HEADER_TEXT, BODY_TEXT);
     ipc.on("return-xfyun-radio", (event, data) => {
       console.log(event, data);
       const audioData = utils.toArrayBuffer(data);
-      audio.initData(audioData, () =>{
+      audio.initData(audioData, () => {
         handleRadioControl("AudioPlayer")(audio);
       }, (event) => {
         if (getRC("isPlaying")) {

@@ -7,7 +7,9 @@ class AudioPlayer {
   }
 
   createBufferSource() {
-    this.source = this.audioCtx.createBufferSource();
+    this.source = this
+      .audioCtx
+      .createBufferSource();
     console.log('====================================');
     console.log(this.audioCtx, this.source);
     console.log('====================================');
@@ -15,39 +17,54 @@ class AudioPlayer {
   }
 
   initData(data, success = () => {}, onended = () => {}, fail = () => {}) {
-    this.parameter =(time = 0) => [data, (buffer) => {
-      try {
-        success();
-        this.source.buffer = buffer;
-        this.source.connect(this.audioCtx.destination);
-        this.source.loop = false;
-        this.source.start(time);
-        // this.source.stop(0);
-        this.source.onended = (event) => {
-          onended(event);
+    this.parameter = (time = 0) => [
+      data, (buffer) => {
+        try {
+          success();
+          this.source.buffer = buffer;
+          this
+            .source
+            .connect(this.audioCtx.destination);
+          this.source.loop = false;
+          this
+            .source
+            .start(time);
+          // this.source.stop(0);
+          this.source.onended = (event) => {
+            onended(event);
+          }
+        } catch (error) {
+          fail(error);
         }
-      } catch (error) {
-        fail(error);
-      }
-    }, fail];
+      },
+      fail
+    ];
   }
 
   start() {
     this.createBufferSource();
-    this.audioCtx.decodeAudioData(...this.parameter(0));
+    this
+      .audioCtx
+      .decodeAudioData(...this.parameter(0));
   }
 
   restart() {
     this.createBufferSource();
-    this.audioCtx.decodeAudioData(...this.parameter(this.audioCtx.currentTime));
+    this
+      .audioCtx
+      .decodeAudioData(...this.parameter(this.audioCtx.currentTime));
   }
 
   pause() {
-    this.source.stop(this.audioCtx.currentTime);
+    this
+      .source
+      .stop(this.audioCtx.currentTime);
   }
 
   stop() {
-    this.source.stop(0);
+    this
+      .source
+      .stop(0);
   }
 };
 
