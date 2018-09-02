@@ -137,28 +137,27 @@ class Content extends Component {
 
 export default withStyles(styles)(Content);
 
-// * 添加护眼模式、夜间模式、淡蓝、淡绿、淡粉、淡紫、牛皮纸、白瓷砖、大理石、纸张模式
 export const images = [
   {
-    url: 'https://raw.githubusercontent.com/mui-org/material-ui/master/static/images/grid-' +
-        'list/breakfast.jpg',
+    url: require('../../asset/pageBackground/45-degree-fabric-light.png'),
     title: '纸张',
-    color: ''
+    backgroundColor: '#EEEEEE',
+    color: '#000000'
   }, {
-    url: 'https://raw.githubusercontent.com/mui-org/material-ui/master/static/images/grid-' +
-        'list/burgers.jpg',
+    url: require('../../asset/pageBackground/shley-tree-1.png'),
     title: '大理石',
-    color: ''
+    backgroundColor: '#EEEEEE',
+    color: '#000000'
   }, {
-    url: 'https://raw.githubusercontent.com/mui-org/material-ui/master/static/images/grid-' +
-        'list/camera.jpg',
+    url: require('../../asset/pageBackground/shley-tree-2.png'),
     title: '白瓷砖',
-    color: ''
+    backgroundColor: '#EEEEEE',
+    color: '#000000'
   }, {
-    url: 'https://raw.githubusercontent.com/mui-org/material-ui/master/static/images/grid-' +
-        'list/camera.jpg',
+    url: require('../../asset/pageBackground/washi.png'),
     title: '牛皮纸',
-    color: ''
+    backgroundColor: '#EEEEEE',
+    color: '#000000'
   }, {
     title: '护眼',
     backgroundColor: '#66CC99',

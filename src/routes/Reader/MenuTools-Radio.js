@@ -89,8 +89,8 @@ const ResumeIcon = (props) => {
       fileL: PropTypes.number.isRequired,
       fileIndex: PropTypes.number.isRequired,
       handleSwitchPage: PropTypes.func.isRequired,
-      radioIndex: PropTypes.number.isRequired,
       radioControl: PropTypes.object.isRequired,
+      handleRadio: PropTypes.func.isRequired,
       handleRadioControl: PropTypes.func.isRequired,
       handleMenuBarControl: PropTypes.func.isRequired,
       handleDrawerOpen: PropTypes.func.isRequired,
@@ -104,7 +104,7 @@ const ResumeIcon = (props) => {
     }
 
     render() {
-      const {classes, fileL, fileIndex, radioIndex, radioControl} = this.props;
+      const {classes, fileL, fileIndex, radioControl} = this.props;
       const {handleDrawerOpen, handleSwitchPage, handleRadioControl, bottomOpenRadio} = this.props;
       // console.log("getVolumeIcon", classes);
       const getVolumeIcon = (volume) => {
@@ -159,16 +159,22 @@ const ResumeIcon = (props) => {
                   }}/> {radioControl.isPlaying
                     ? <IconB
                         title="暂停"
-                        onClick={() => {}}
+                        onClick={() => {
+                        handleRadioControl("isPlaying")(false, () => {
+                          const audio = radioControl.AudioPlayer;
+                          audio.pause();
+                          // handleRadioControl("AudioPlayer")(audio);
+                        });
+                      }}
                         iconName="Pause"
                         style={{
                         fontSize: '-webkit-xxx-large',
                         color: "#000"
                       }}/>
-                    : (!radioIndex
+                    : (!radioControl.playIndex
                       ? <IconB
                           title="播放"
-                          onClick={() => {}}
+                          onClick={this.props.handleRadio}
                           iconName="PlayArrow"
                           style={{
                           fontSize: '-webkit-xxx-large',
@@ -176,7 +182,13 @@ const ResumeIcon = (props) => {
                         }}/>
                       : <IconB
                         title="恢复"
-                        onClick={() => {}}
+                        onClick={() => {
+                        handleRadioControl("isPlaying")(true, () => {
+                          const audio = radioControl.AudioPlayer;
+                          audio.restart();
+                          // handleRadioControl("AudioPlayer")(audio);
+                        });
+                      }}
                         iconName="Resume"
                         style={{
                         fontSize: '-webkit-xxx-large',
@@ -184,7 +196,19 @@ const ResumeIcon = (props) => {
                       }}/>)}
                   <IconB
                     title="停止"
-                    onClick={() => {}}
+                    onClick={() => {
+                    if (radioControl.isPlaying) {
+                      handleRadioControl("isPlaying")(false, () => {
+                        handleRadioControl("playIndex")(0, () => {
+                          const audio = radioControl.AudioPlayer;
+                          audio.stop();
+                          handleRadioControl("AudioPlayer")(audio);
+                        });
+                      });
+                    } else {
+                      handleRadioControl("playIndex")(0);
+                    }
+                  }}
                     iconName="Stop"
                     style={{
                     color: "#000"

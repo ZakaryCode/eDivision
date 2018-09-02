@@ -27,7 +27,7 @@ class Configurator {
         this.index = Number(index) || 0;
     }
 
-    @action setMessage(message, callback) {
+    @action setMessage(message, callback = () => {}) {
         clearTimeout(this.messageTimer);
 
         this.messageTimer = setTimeout(() => {

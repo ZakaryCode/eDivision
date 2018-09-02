@@ -1,10 +1,6 @@
 /**
  * @author zakary
  * @description 内容页
- * 开发纪要：
- * 添加字体、字号、字色、背景选择功能
- * 添加护眼模式、夜间模式、淡蓝、淡绿、淡粉、淡紫、牛皮纸、白瓷砖、大理石、纸张模式
- * 添加宽视距、中等视距、窄视距模式
  */
 
 import React, {Component} from 'react';
@@ -23,6 +19,7 @@ import bottomDrawerRadio from '../../store/bottomDrawerRadio';
 import app from '../../store/app';
 import * as R from "../../conf/RegExp";
 import * as utils from "../../utils";
+import AudioPlayer from "../../utils/AudioPlayer";
 import base64 from "../../utils/base64";
 import * as md5 from "../../utils/md5";
 import ToolsBar from "./MenuTools-Bar";
@@ -34,9 +31,6 @@ const _fs_ = window.require('fs'),
   electron = window.require("electron"),
   remote = electron.remote;
 const ipc = electron.ipcRenderer;
-
-const AudioContext = window.AudioContext || window.webkitAudioContext;
-const audioCtx = new AudioContext();
 
 let margin;
 class Content extends Component {
@@ -51,13 +45,12 @@ class Content extends Component {
       fileData: [],
       fileIndex: 0,
       pageIndex: 0,
-      radioIndex: 0,
-      radioStatus: false,
       leftOpen: leftDrawer.open,
       bottomOpen: bottomDrawer.open,
       bottomOpenSetting: bottomDrawerTools.open,
       bottomOpenRadio: bottomDrawerRadio.open,
       pageStyles: {
+        screenWidth: "100%",
         color: "#000000",
         backgroundColor: "#FFFFFF",
         fontSize: 16,
@@ -65,6 +58,8 @@ class Content extends Component {
         verticalSpacing: 1
       },
       radioControl: {
+        isPlaying: false,
+        playIndex: 0,
         URL: "http://api.xfyun.cn/v1/service/v1/tts",
         CONTENT_TYPE: "application/x-www-form-urlencoded; charset=utf-8",
         REAL_IP: "127.0.0.1",
@@ -78,8 +73,7 @@ class Content extends Component {
         speed: 50,
         volume: 50,
         hasVolume: true,
-        pitch: 50,
-        isPlaying: false
+        pitch: 50
       },
       CONTENT: {},
       displayMode: 1
@@ -277,19 +271,23 @@ class Content extends Component {
     }
   }
 
-  handlePageStyle = name => (value) => {
+  handlePageStyle = name => (value, call = () => {}) => {
     let pageStyles = this.state.pageStyles;
     pageStyles[name] = value;
-    this.setState({pageStyles});
+    this.setState({
+      pageStyles
+    }, call);
   }
 
-  handleRadioControl = name => (value) => {
+  handleRadioControl = name => (value, call = () => {}) => {
     let radioControl = this.state.radioControl;
     radioControl[name] = value;
-    this.setState({radioControl});
+    this.setState({
+      radioControl
+    }, call);
   }
 
-  handleSwitchPage = flag => (count, callback) => {
+  handleSwitchPage = flag => (count, callback = () => {}) => {
     let i;
     if (flag === 2) {
       i = count;
@@ -307,13 +305,14 @@ class Content extends Component {
     }
     this.setState({
       fileIndex: i,
-      pageIndex: 0,
-      radioIndex: 0
+      pageIndex: 0
     }, () => {
-      if (typeof callback === "function") 
-        callback();
-      }
-    );
+      this.handleRadioControl('playIndex', 0, () => {
+        if (typeof callback === 'function') {
+          callback();
+        }
+      });
+    });
   }
 
   handleMenuBarControl = (open) => {
@@ -326,90 +325,93 @@ class Content extends Component {
   }
 
   handleRadioBar = () => {
-    // this.setState({radioStatus: true});
+    this.handleRadioControl("AudioPlayer")(new AudioPlayer(), () => {
+      this.handleRadioControl("isPlaying")(true, this.handleRadio);
+    });
   }
 
-  handleRadio = () => {
-    const {fileData, fileIndex, radioIndex, radioControl} = this.state, {URL, AUE, APPID, API_KEY} = radioControl,
-      setState = (name, data, s = () => {}) => {
-        this.setState({
-          [name]: data
-        }, s);
+  handleRadio = (tag = "0. START") => {
+    console.log("handleRadio tag: " + tag);
+    const {fileData, fileIndex} = this.state,
+      handleRadio = this.handleRadio,
+      handleRadioControl = this.handleRadioControl,
+      getRC = (s) => {
+        const rc = this.state.radioControl || {};
+        return rc[s];
       },
       getHeader = () => {
         let curTime = "" + parseInt(new Date().getTime() / 1000, 10),
           param = {
-            auf: radioControl.AUF,
-            aue: AUE,
-            voice_name: radioControl.VOICE_NAME,
-            engine_type: radioControl.ENGINE_TYPE,
-            text_type: radioControl.TEXT_TYPE,
-            speed: radioControl.speed,
-            volume: (radioControl.hasVolume
-              ? radioControl.volume
-              : 0),
-            pitch: radioControl.pitch
+            auf: getRC("AUF"),
+            aue: getRC("AUE"),
+            voice_name: getRC("VOICE_NAME"),
+            engine_type: getRC("ENGINE_TYPE"),
+            text_type: getRC("TEXT_TYPE"),
+            speed: "" + getRC("speed"),
+            volume: "" + (getRC("hasVolume")
+              ? getRC("volume")
+              : 50),
+            pitch: "" + getRC("pitch")
           },
           paramBase64 = base64.encode(JSON.stringify(param)),
-          checkSum = md5.hex_md5(API_KEY + curTime + paramBase64),
           header = {
             'X-CurTime': curTime,
             'X-Param': paramBase64,
-            'X-Appid': APPID,
-            'X-CheckSum': checkSum,
-            'X-Real-Ip': radioControl.REAL_IP,
-            'Content-Type': radioControl.CONTENT_TYPE
+            'X-Appid': getRC("APPID"),
+            'X-CheckSum': md5.hex_md5(getRC("API_KEY") + curTime + paramBase64),
+            'X-Real-Ip': getRC("REAL_IP"),
+            'Content-Type': getRC("CONTENT_TYPE")
           }
         return header;
       },
-      getBody = () => {
+      getBody = (i) => {
         const paragraphs = (fileData[fileIndex] || "").split(R.newline),
           paragraphsL = paragraphs.length,
-          paragraph = (paragraphs[radioIndex] || "").replace(R.redundancy, "");
+          paragraph = (paragraphs[i] || "").replace(R.redundancy, "");
         let data = {};
-        if (paragraphsL < radioIndex) {
+        if (paragraphsL < i) {
           // 本章读完，切换下一章
           this.handleSwitchPage(1)(null, () => {
-            setState("radioStatus", true);
+            handleRadioControl("playIndex")(0, () => {
+              handleRadioControl("isPlaying")(true, () => handleRadio("2. NEXT CHAPTER"));
+            });
           });
         } else if (paragraph) {
           // 段落存在，开始阅读
           data = {
             text: paragraph
           }
+          console.log("BODY_TEXT", data);
+          handleRadioControl("playIndex")(i);
           return utils.json2Form(data);
         } else {
           // 段落不存在，切换下一段落
-          setState("radioIndex", radioIndex + 1);
-          setState("radioStatus", true);
+          return getBody(i + 1);
         }
       },
-      BODY_TEXT = getBody();
-    if (!BODY_TEXT) {
+      HEADER_TEXT = getHeader(),
+      BODY_TEXT = getBody(getRC("playIndex"));
+    if (!getRC("AUE") || !getRC("URL") || !HEADER_TEXT || !BODY_TEXT) 
       return;
-    }
-    // alert(BODY_TEXT);
-    ipc.send('get-xfyun-radio', AUE, URL, getHeader(), BODY_TEXT);
+    ipc.send('get-xfyun-radio', getRC("AUE"), getRC("URL"), HEADER_TEXT, BODY_TEXT);
     ipc.on("return-xfyun-radio", (event, data) => {
       console.log(event, data);
-      let source = audioCtx.createBufferSource(),
-        audioData = utils.toArrayBuffer(data);
-      audioCtx.decodeAudioData(audioData, function (buffer) {
-        source.buffer = buffer;
-        source.connect(audioCtx.destination);
-        source.loop = false;
-        source.start(0);
-        // source.stop(0);
-      }, function (e) {
-        console.log("Error with decoding audio data" + e.err);
+      const audioData = utils.toArrayBuffer(data),
+        audio = getRC("AudioPlayer");
+      audio.initData(audioData, () => {}, (event) => {
+        if (getRC("isPlaying")) {
+          // 阅读完毕，向下跳转
+          handleRadioControl("playIndex")(getRC("playIndex") + 1, () => {
+            handleRadioControl("isPlaying")(true, () => handleRadio("1. NEXT PART"));
+          });
+        } else {
+          // 主动停止，跳出 素材
+          console.log("audioCtx.onended", event);
+        }
+      }, (e) => {
+        console.log(e);
       });
-      source.onended = function (event) {
-        // 主动停止，跳出 素材
-        console.log("audioCtx.onended", event);
-        // 阅读完毕，向下跳转
-        setState("radioIndex", radioIndex + 1);
-        setState("radioStatus", true);
-      }
+      audio.start();
     });
     ipc.on("return-xfyun-radio-error", (event, data) => {
       console.log(event, data);
@@ -451,8 +453,8 @@ class Content extends Component {
   }
 
   autoscale = (canvas) => {
-    const ratio = this.countRatio(canvas);
-    if (1 != ratio) {
+    const ratio = Number(this.countRatio(canvas));
+    if (1 !== ratio) {
       canvas.style.width = canvas.width + 'px';
       canvas.style.height = canvas.height + 'px';
       canvas.width *= ratio;
@@ -522,11 +524,6 @@ class Content extends Component {
           }
         }
       };
-    if (this.state.radioStatus) {
-      this.setState({
-        radioStatus: false
-      }, this.handleRadio);
-    }
 
     return (
       <div
@@ -552,12 +549,18 @@ class Content extends Component {
           fontFamily: pageStyles.fontFamily,
           height: BOOK_CONTENT_HEIGHT
         }}>
-          <div id="BOOK_CONTENT_INNER" ref={this.handleInputRef("BOOK_CONTENT_INNER")}>
+          <div
+            id="BOOK_CONTENT_INNER"
+            ref={this.handleInputRef("BOOK_CONTENT_INNER")}
+            style={{
+            margin: "auto",
+            width: pageStyles.screenWidth
+          }}>
             {BookContentDiv(BOOK_CONTENT_HEIGHT)}
             <canvas
               id="canvas"
-              width={document.body.offsetWidth - margin * 2}
-              height={document.body.offsetHeight - margin * 2}></canvas>
+              height={document.body.offsetHeight - margin * 2}
+              width={document.body.offsetWidth - margin * 2}/>
           </div>
         </div>
         <div className="bookCatalog" ref={this.handleInputRef("BOOK_CATALOG")}>
@@ -583,6 +586,7 @@ class Content extends Component {
                       </ListItem>
                     }
                   }
+                  return null;
                 })}
               </List>
             </div>
@@ -614,8 +618,8 @@ class Content extends Component {
             fileL={fileData.length}
             fileIndex={fileIndex}
             handleSwitchPage={this.handleSwitchPage}
-            radioIndex={this.state.radioIndex}
             radioControl={radioControl}
+            handleRadio={this.handleRadioBar}
             handleRadioControl={this.handleRadioControl}
             handleMenuBarControl={this.handleMenuBarControl}
             handleDrawerOpen={this.handleDrawerOpen}
