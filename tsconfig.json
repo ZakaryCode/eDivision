@@ -2,15 +2,12 @@
   "compilerOptions": {
     "outDir": "build/dist",
     "module": "esnext",
-    "target": "es5",
-    "lib": [
-      "es6",
-      "dom"
-    ],
+    "target": "es2015",
+    "lib": ["es6", "dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "jsx": "preserve",
     "moduleResolution": "node",
-    "rootDir": "src",
+    "rootDir": ".",
     "allowSyntheticDefaultImports": true,
     "declaration": false,
     "esModuleInterop": true,
@@ -41,12 +38,10 @@
       }
     ]
   },
-  "include": [
-    "src",
-    "main-process",
-    "main.js"
-  ],
+  "include": ["src", "main-process", "main.ts"],
   "exclude": [
+    "src/**/*.js",
+    "main-process/**/*.js",
     "config",
     "node_modules",
     "build",

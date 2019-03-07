@@ -23,7 +23,7 @@ import './Drawer.css';
 
   static defaultProps = {}
 
-  @computed get index() {
+  /* @computed  */get index() {
     return this.index;
   }
 

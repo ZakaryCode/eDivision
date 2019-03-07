@@ -7,9 +7,9 @@ module.exports = {
     ["@babel/plugin-proposal-decorators", { "legacy": true }],
     ["@babel/plugin-proposal-class-properties", { "loose" : true }]
   ), (config) => {
-    if (process.env.NODE_ENV === 'development') {
-        config.output.publicPath = 'http://127.0.0.1:4005/';
-    }
+    // if (process.env.NODE_ENV === 'development') {
+    //     config.output.publicPath = 'http://127.0.0.1:4005/';
+    // }
     config.optimization.splitChunks.name = 'vendor';
     return config;
   }),
