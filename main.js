@@ -1,8 +1,8 @@
-const path = require('path'),
-  url = require('url'),
-  glob = require('glob'),
-  electron = require('electron'),
-  __conf = require("./src/conf/index");
+const path = require('path');
+const url = require('url');
+const glob = require('glob');
+const electron = require('electron');
+const __conf = require("./src/conf/index");
 // const autoUpdater = require('./auto-updater');
 
 const {app, BrowserWindow} = electron;
@@ -10,16 +10,16 @@ const {mainWindowOptions} = __conf;
 
 const debug = /--debug/.test(process.argv[2]);
 
-if (process.mas) 
+if (process.mas)
   app.setName('Electron APIs');
 
 let mainWindow = null;
 
 const initialize = () => {
   let shouldQuit = makeSingleInstance();
-  if (shouldQuit) 
+  if (shouldQuit)
     return app.quit();
-  
+
   loadDemos();
 
   const createWindow = () => {
@@ -35,7 +35,7 @@ const initialize = () => {
     mainWindow = new BrowserWindow(windowOptions);
     // mainWindow.maximize();
     if (__conf.DEV) {
-      mainWindow.loadURL("http://localhost:3000/");
+      mainWindow.loadURL("http://127.0.0.1:3000/");
     } else {
       mainWindow.loadURL(url.format({
         pathname: path.join(__dirname, './build/index.html'),
@@ -106,7 +106,7 @@ const makeSingleInstance = () => {
 
   return app.makeSingleInstance(() => {
     if (mainWindow) {
-      if (mainWindow.isMinimized()) 
+      if (mainWindow.isMinimized())
         mainWindow.restore();
       mainWindow.focus();
     }
