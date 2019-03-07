@@ -1,24 +1,23 @@
-const path = require('path');
+// require('update-electron-app')({
+//   logger: require('electron-log')
+// })
+const path = require('path')
+const glob = require('glob')
+const {app, BrowserWindow, dialog} = require('electron')
+
 const url = require('url');
-const glob = require('glob');
-const electron = require('electron');
 const __conf = require("./src/conf/index");
 // const autoUpdater = require('./auto-updater');
-
-const {app, BrowserWindow} = electron;
 const {mainWindowOptions} = __conf;
 
-const debug = /--debug/.test(process.argv[2]);
+const debug = /--debug/.test(process.argv[2])
 
-if (process.mas)
-  app.setName('Electron APIs');
+if (process.mas) app.setName('Electron APIs')
 
 let mainWindow = null;
 
-const initialize = () => {
-  let shouldQuit = makeSingleInstance();
-  if (shouldQuit)
-    return app.quit();
+function initialize () {
+  makeSingleInstance()
 
   loadDemos();
 
@@ -62,8 +61,7 @@ const initialize = () => {
           message: '这个进程已经崩溃.',
           buttons: ['重载', '关闭']
         };
-        electron
-          .dialog
+        dialog
           .showMessageBox(options, (index) => {
             if (index === 0) {
               mainWindow.reload();
@@ -72,6 +70,7 @@ const initialize = () => {
             }
           });
       });
+
     mainWindow.on('closed', () => {
       mainWindow = null;
     });
@@ -103,8 +102,9 @@ const makeSingleInstance = () => {
   if (process.mas) {
     return false;
   }
+  app.requestSingleInstanceLock();
 
-  return app.makeSingleInstance(() => {
+  app.on('second-instance', function (argv, cwd) {
     if (mainWindow) {
       if (mainWindow.isMinimized())
         mainWindow.restore();

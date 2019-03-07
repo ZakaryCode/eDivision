@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Manager, Target, Popper} from 'react-popper';
+import {Manager, Reference, Popper} from 'react-popper';
 import PropTypes from 'prop-types';
 import {withStyles} from '@material-ui/core/styles';
 import classNames from 'classnames';
@@ -192,14 +192,13 @@ class InfoInput extends Component {
                 className={className}
                 onChange={onChange}
                 {..._else_}>
-                <Target
-                  onClick={this.handleToggle}
-                  style={{
-                  minHeight: 2 + 'em',
-                  lineHeight: 2 + 'em'
-                }}>
+                <Reference >
+                {({ ref }) => (
                   <div
+                    onClick={this.handleToggle}
                     style={{
+                    minHeight: 2 + 'em',
+                    lineHeight: 2 + 'em',
                     position: "relative"
                   }}
                     ref={(node) => {
@@ -213,8 +212,8 @@ class InfoInput extends Component {
                       onClick={this.handleToggle}>
                       {this.props.value}
                     </Button>
-                  </div>
-                </Target>
+                  </div>)}
+                </Reference>
                 <Popper
                   placement="bottom-start"
                   eventsEnabled={open}
