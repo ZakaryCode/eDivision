@@ -105,15 +105,15 @@ class Content extends Component {
       if (err) {
         ipc.send('open-error-get-file-dialog');
       } else {
-        data = data.split(R.tripletBreak);
+        data = data.split(R.chapterBreak); // tripletBreak
         // data = data.split((division || divisionD));
         for (let index = 0; index < data.length; index++) {
           ((index) => {
             const element = data[index];
             let bookName = (book || bookD) + (connect || connectD) + index;
             let e = element.replace(R.redundancy, "");
-            console.log("bookName", bookName);
-            console.log("bookData", e, !!e);
+            // console.log("bookName", bookName);
+            // console.log("bookData", e, !!e);
             if (!!e) {
               _fs_.writeFile(_path_.resolve(directory, bookName + ".txt"), element, (err) => {
                 if (err) {
